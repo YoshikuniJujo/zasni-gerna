@@ -11,7 +11,7 @@ testParse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
-	parsed = runError $ gerna_UI $ gerna_parse src
+	parsed = runError $ gerna_PA $ gerna_parse src
 
 showParseError :: ParseError (Pos String) Gerna_Derivs -> String
 showParseError pe =
@@ -34,6 +34,91 @@ maybeCons mx xs = maybe xs (: xs) mx
 [papillon|
 
 prefix: "gerna_"
+
+PA :: String = _:Y* &_:cmavo r:
+	( d:d a:a u:u				{ [d, a, u] }
+	/ f:f e:e i:i				{ [f, e, i] }
+	/ g:g a:a i:i				{ [g, a, i] }
+	/ j:j a:a u:u				{ [j, a, u] }
+	/ r:r e:e i:i				{ [r, e, i] }
+	/ v:v a:a i:i				{ [v, a, i] }
+	/ p:p i:i h:h e:e			{ [p, i, h, e] }
+	/ p:p i:i				{ [p, i] }
+	/ f:f i:i h:h u:u			{ [f, i, h, u] }
+	/ z:z a:a h:h u:u			{ [z, a, h, u] }
+	/ m:m e:e h:h i:i			{ [m, e, h, i] }
+	/ n:n i:i h:h u:u			{ [n, i, h, u] }
+	/ k:k i:i h:h o:o			{ [k, i, h, o] }
+	/ c:c e:e h:h i:i			{ [c, e, h, i] }
+	/ m:m a:a h:h u:u			{ [m, a, h, u] }
+	/ r:r a:a h:h e:e			{ [r, a, h, e] }
+	/ d:d a:a h:h a:a			{ [d, a, h, a] }
+	/ s:s o:o h:h a:a			{ [s, o, h, a] }
+	/ j:j i:i h:h i':i			{ [j, i, h, i'] }
+	/ s:s u:u h:h o:o			{ [s, u, h, o] }
+	/ s:s u:u h:h e:e			{ [s, u, h, e] }
+	/ r:r o:o				{ [r, o] }
+	/ r:r a:a u:u				{ [r, a, u] }
+	/ s:s o:o h:h u:u			{ [s, o, h, u] }
+	/ s:s o:o h:h i:i			{ [s, o, h, i] }
+	/ s:s o:o h:h e:e			{ [s, o, h, e] }
+	/ s:s o:o h:h o':o			{ [s, o, h, o'] }
+	/ m:m o:o h:h a:a			{ [m, o, h, a] }
+	/ d:d u:u h:h e:e			{ [d, u, h, e] }
+	/ t:t e:e h:h o:o			{ [t, e, h, o] }
+	/ x:x o:o				{ [x, o] }
+	/ p:p a:a i:i				{ [p, a, i] }
+	/ n:n o:o h:h o:o			{ [n, o, h, o] }
+	/ n:n o:o				{ [n, o] }
+	/ p:p a:a				{ [p, a] }
+	/ r:r e:e				{ [r, e] }
+	/ c:c i:i				{ [c, i] }
+	/ v:v o:o				{ [v, o] }
+	/ m:m u:u				{ [m, u] }
+	/ x:x a:a				{ [x, a] }
+	/ z:z e:e				{ [z, e] }
+	/ b:b i:i				{ [b, i] }
+	/ s:s o:o				{ [s, o] }
+ ) &_:post_cmavo					{ r }
+
+ROI :: String = _:Y* &_:cmavo r:
+	( r:r e:e h:h u:u			{ [r, e, h, u] }
+	/ r:r o:o i:i				{ [r, o, i] }
+ ) &_:post_cmavo					{ r }
+
+SE :: String = _:Y* &_:cmavo r:
+	( s:s e:e				{ [s, e] }
+	/ t:t e:e				{ [t, e] }
+	/ v:v e:e				{ [v, e] }
+	/ x:x e:e				{ [x, e] }
+ ) &_:post_cmavo					{ r }
+
+SEI :: String = _:Y* &_:cmavo r:(s:s e:e i:i { [s, e, i] }) &_:post_cmavo
+							{ r }
+
+SEhU :: String = _:Y* &_:cmavo r:(s:s e:e h:h u:u { [s, e, h, u] }) &_:post_cmavo
+							{ r }
+
+SI :: String = _:Y* &_:cmavo r:(s:s i:i { [s, i] }) &_:post_cmavo
+							{ r }
+
+SU :: String = _:Y* &_:cmavo r:(s:s u:u { [s, u] }) &_:post_cmavo
+							{ r }
+
+TEhU :: String = _:Y* &_:cmavo r:(t:t e:e h:h u:u { [t, e, h, u] }) &_:post_cmavo
+							{ r }
+
+TO :: String = _:Y* &_:cmavo r:(t:t o:o { [t, o] }) &_:post_cmavo
+							{ r }
+
+TOI :: String = _:Y* &_:cmavo r:(t:t o:o i:i { [t, o, i] }) &_:post_cmavo
+							{ r }
+
+TUhE :: String = _:Y* &_:cmavo r:(t:t u:u h:h e:e { [t, u, h, e] }) &_:post_cmavo
+							{ r }
+
+TUhU :: String = _:Y* &_:cmavo r:(t:t u:u h:h u':u { [t, u, h, u'] }) &_:post_cmavo
+							{ r }
 
 UI :: String = _:Y* &_:cmavo result:
 	( r:r a:a h:h o:o			{ [r, a, h, o] }
