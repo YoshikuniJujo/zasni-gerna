@@ -11,7 +11,7 @@ testParse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
-	parsed = runError $ gerna_cmevla $ gerna_parse src
+	parsed = runError $ gerna_UI $ gerna_parse src
 
 showParseError :: ParseError (Pos String) Gerna_Derivs -> String
 showParseError pe =
@@ -34,6 +34,122 @@ maybeCons mx xs = maybe xs (: xs) mx
 [papillon|
 
 prefix: "gerna_"
+
+UI :: String = _:Y* &_:cmavo result:
+	( r:r a:a h:h o:o			{ [r, a, h, o] }
+	/ k:k e:e h:h i:i			{ [k, e, h, i] }
+	/ g:g a:a h:h o:o			{ [g, a, h, o] }
+	/ n:n a:a i:i				{ [n, a, i] }
+	/ p:p e:e i:i				{ [p, e, i] }
+	/ c:c a:a i:i				{ [c, a, i] }
+	/ c:c u:u h:h i:i			{ [c, u, h, i] }
+	/ s:s a:a i:i				{ [s, a, i] }
+	/ r:r u:u h:h e:e			{ [r, u, h, e] }
+	/ d:d a:a h:h o:o			{ [d, a, h, o] }
+	/ f:f u:u h:h e:e			{ [f, u, h, e] }
+	/ f:f u:u h:h o:o			{ [f, u, h, o] }
+	/ i:i h:h a:a				{ [i, h, a] }
+	/ i:i e:e				{ [i, e] }
+	/ a:a h:h e:e				{ [a, h, e] }
+	/ u:u h:h i:i				{ [u, h, i] }
+	/ i:i h:h o:o				{ [i, h, o] }
+	/ i:i h:h e:e				{ [i, h, e] }
+	/ a:a h:h a':a				{ [a, h, a'] }
+	/ i:i a:a				{ [i, a] }
+	/ o:o h:h i:i				{ [o, h, i] }
+	/ o:o h:h e:e				{ [o, h, e] }
+	/ e:e h:h e':e				{ [e, h, e'] }
+	/ o:o i:i				{ [o, i] }
+	/ u:u o:o				{ [u, o] }
+	/ e:e h:h i:i				{ [e, h, i] }
+	/ u:u h:h o:o				{ [u, h, o] }
+	/ a:a u:u				{ [a, u] }
+	/ u:u a:a				{ [u, a] }
+	/ a:a h:h i:i				{ [a, h, i] }
+	/ i:i h:h u:u				{ [i, h, u] }
+	/ i:i i':i				{ [i, i'] }
+	/ u:u h:h a:a				{ [u, h, a] }
+	/ u:u i:i				{ [u, i] }
+	/ a:a h:h o:o				{ [a, h, o] }
+	/ a:a i:i				{ [a, i] }
+	/ a:a h:h u:u				{ [a, h, u] }
+	/ i:i u:u				{ [i, u] }
+	/ e:e i:i				{ [e, i] }
+	/ o:o h:h o':o				{ [o, h, o'] }
+	/ e:e h:h a:a				{ [e, h, a] }
+	/ u:u u':u				{ [u, u'] }
+	/ o:o h:h a:a				{ [o, h, a] }
+	/ o:o h:h u:u				{ [o, h, u] }
+	/ u:u h:h u':u				{ [u, h, u'] }
+	/ e:e h:h o:o				{ [e, h, o] }
+	/ i:i o:o				{ [i, o] }
+	/ e:e h:h u:u				{ [e, h, u] }
+	/ u:u e:e				{ [u, e] }
+	/ i:i h:h i':i				{ [i, h, i'] }
+	/ u:u h:h e:e				{ [u, h, e] }
+	/ b:b a:a h:h a:a			{ [b, a, h, a] }
+	/ j:j a:a h:h o:o			{ [j, a, h, o] }
+	/ c:c a:a h:h e:e			{ [c, a, h, e] }
+	/ s:s u:u h:h a:a			{ [s, u, h, a] }
+	/ t:t i:i h:h e:e			{ [t, i, h, e] }
+	/ k:k a:a h:h u:u			{ [k, a, h, u] }
+	/ s:s e:e h:h o:o			{ [s, e, h, o] }
+	/ z:z a:a h:h a:a			{ [z, a, h, a] }
+	/ p:p e:e h:h i:i			{ [p, e, h, i] }
+	/ r:r u:u h:h a:a			{ [r, u, h, a] }
+	/ j:j u:u h:h a:a			{ [j, u, h, a] }
+	/ t:t a:a h:h o:o			{ [t, a, h, o] }
+	/ r:r a:a h:h u:u			{ [r, a, h, u] }
+	/ l:l i:i h:h a:a			{ [l, i, h, a] }
+	/ b:b a:a h:h u:u			{ [b, a, h, u] }
+	/ m:m u:u h:h a:a			{ [m, u, h, a] }
+	/ d:d o:o h:h a:a			{ [d, o, h, a] }
+	/ t:t o:o h:h u:u			{ [t, o, h, u] }
+	/ v:v a:a h:h i:i			{ [v, a, h, i] }
+	/ p:p a:a h:h e:e			{ [p, a, h, e] }
+	/ z:z u:u h:h u:u			{ [z, u, h, u] }
+	/ s:s a:a h:h e:e			{ [s, a, h, e] }
+	/ l:l a:a h:h a':a			{ [l, a, h, a'] }
+	/ k:k e:e h:h u:u			{ [k, e, h, u] }
+	/ s:s a:a h:h u:u			{ [s, a, h, u] }
+	/ d:d a:a h:h i:i			{ [d, a, h, i] }
+	/ j:j e:e h:h u:u			{ [j, e, h, u] }
+	/ s:s a:a h:h a':a			{ [s, a, h, a'] }
+	/ k:k a:a u:u				{ [k, a, u] }
+	/ t:t a:a h:h u:u			{ [t, a, h, u] }
+	/ n:n a:a h:h i:i			{ [n, a, h, i] }
+	/ j:j o:o h:h a:a			{ [j, o, h, a] }
+	/ b:b i:i h:h u:u			{ [b, i, h, u] }
+	/ l:l i:i h:h o:o			{ [l, i, h, o] }
+	/ p:p a:a u:u				{ [p, a, u] }
+	/ m:m i:i h:h u:u			{ [m, i, h, u] }
+	/ k:k u:u n:n i:i			{ [k, u, n, i] }
+	/ j:j i:i h:h a:a			{ [j, i, h, a] }
+	/ s:s i:i h:h a:a			{ [s, i, h, a] }
+	/ p:p o:o h:h o':o			{ [p, o, h, o'] }
+	/ p:p e:e h:h a:a			{ [p, e, h, a] }
+	/ r:r o:o h:h i:i			{ [r, o, h, i] }
+	/ r:r o:o h:h e:e			{ [r, o, h, e] }
+	/ r:r o:o h:h o':o			{ [r, o, h, o'] }
+	/ r:r o:o h:h u:u			{ [r, o, h, u] }
+	/ r:r o:o h:h a:a			{ [r, o, h, a] }
+	/ r:r e:e h:h e:e			{ [r, e, h, e] }
+	/ l:l e:e h:h o:o			{ [l, e, h, o] }
+	/ j:j u:u h:h o:o			{ [j, u, h, o] }
+	/ f:f u:u h:h i:i			{ [f, u, h, i] }
+	/ d:d a:a i:i				{ [d, a, i] }
+	/ g:g a:a h:h i:i			{ [g, a, h, i] }
+	/ z:z o:o h:h o:o			{ [z, o, h, o] }
+	/ b:b e:e h:h u:u			{ [b, e, h, u] }
+	/ r:r i:i h:h e:e			{ [r, i, h, e] }
+	/ s:s e:e h:h i:i			{ [s, e, h, i] }
+	/ s:s e:e h:h a:a			{ [s, e, h, a] }
+	/ v:v u:u h:h e:e			{ [v, u, h, e] }
+	/ k:k i:i h:h a:a			{ [k, i, h, a] }
+	/ x:x u:u				{ [x, u] }
+	/ g:g e:e h:h e':e			{ [g, e, h, e'] }
+	/ b:b u:u h:h o:o			{ [b, u, h, o] }
+ ) &_:post_cmavo { result }
 
 VAU :: String = _:Y* &_:cmavo r:(v:v a:a u:u { [v, a, u] }) &_:post_cmavo
 							{ r }
@@ -309,7 +425,7 @@ y :: Char = 'y' !_:nucleus				{ 'y' }
 
 Y :: String
 	= ys:('y' { 'y' })+ !_:nucleus			{ ys }
-	/ space						{ "" }
+	/ _:space					{ "" }
 
 non_space :: Char
 	= !_:space c					{ c }
