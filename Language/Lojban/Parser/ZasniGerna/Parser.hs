@@ -11,7 +11,7 @@ testParse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
-	parsed = runError $ gerna_short_rafsi $ gerna_parse src
+	parsed = runError $ gerna_cmevla $ gerna_parse src
 
 showParseError :: ParseError (Pos String) Gerna_Derivs -> String
 showParseError pe =
@@ -25,7 +25,7 @@ showParseError pe =
 
 showReading :: Gerna_Derivs -> String -> String
 showReading d n
-	| n == "gerna_char", Right (c, _) <- runError $ gerna_char d = show c
+	| n == "char", Right (c, _) <- runError $ gerna_char d = show c
 	| otherwise = "yet: " ++ n
 
 maybeCons :: Maybe a -> [a] -> [a]
@@ -34,6 +34,146 @@ maybeCons mx xs = maybe xs (: xs) mx
 [papillon|
 
 prefix: "gerna_"
+
+VAU :: String = _:Y* &_:cmavo r:(v:v a:a u:u { [v, a, u] }) &_:post_cmavo
+							{ r }
+
+VEI :: String = _:Y* &_:cmavo r:(v:v e:e i:i { [v, e, i] }) &_:post_cmavo
+							{ r }
+
+VEhO :: String = _:Y* &_:cmavo r:(v:v e:e h:h o:o { [v, e, h, o] }) &_:post_cmavo
+							{ r }
+
+VUhO :: String = _:Y* &_:cmavo r:(v:v u:u h:h o:o { [v, u, h, o] }) &_:post_cmavo
+							{ r }
+
+XI :: String = _:Y* &_:cmavo r:(x:x i:i { [x, i] }) &_:post_cmavo
+							{ r }
+
+ZEI :: String = _:Y* &_:cmavo r:(z:z e:e i:i { [z, e, i] }) &_:post_cmavo
+							{ r }
+
+ZIhE :: String = _:Y* &_:cmavo r:(z:z i:i h:h e:e { [z, i, h, e] }) &_:post_cmavo
+							{ r }
+
+ZO :: String = _:Y* &_:cmavo r:(z:z o:o { [z, o] }) &_:post_cmavo
+							{ r }
+
+ZOI :: String = _:Y* &_:cmavo r:
+	( z:z o:o i:i				{ [z, o, i] }
+	/ l:l a:a h:h o:o			{ [l, a, h, o] }
+ ) &_:post_cmavo					{ r }
+
+ZOhU :: String = _:Y* &_:cmavo r:(z:z o:o h:h u:u { [z, o, h, u] }) &_:post_cmavo
+							{ r }
+
+-- ****** MORPHOLOGY ******
+
+cmevla :: String
+	= j:jbocme					{ j }
+	/ z:zifcme					{ z }
+
+jbocme :: String = &_:zifcme s:
+	(o:onset n:nucleus c:coda? { o ++ n ++ maybeToList c })+ &_:space
+							{ concat s }
+
+zifcme :: String = !_:h cs:
+	( v:V					{ [v] }
+	/ vv:VV					{ vv }
+	/ y:y					{ [y] }
+	/ i:I					{ [i] }
+	/ h:h					{ [h] }
+	/ c:C !_:space				{ [c] }
+ )* c:C &_:space					{ concat cs ++ [c] }
+
+cmavo :: String
+	= {- !_:cmevla -} !_:CVCy_lujvo c:C? i:I? n:nucleus
+		hns:(h:h n:nucleus { h : n })* &_:post_cmavo
+							{ catMaybes [c, i] ++
+								n ++ concat hns }
+
+CVCy_lujvo :: ()
+	= _:C _:V _:C _:y _:initial_rafsi*
+		_:(_:final_rafsi / _:gismu / _:fuhivla / _:type_3_fuhivla)
+
+post_cmavo :: () = _:space / _:cmavo / _:brivla
+
+brivla :: String
+	= g:gismu					{ g }
+	/ !_:h f:fuhivla				{ f }
+	/ t3f:type_3_fuhivla				{ t3f }
+	/ l:lujvo					{ l }
+
+lujvo :: String = !_:cmavo !_:h ir:initial_rafsi+ b:
+	( fr:final_rafsi			{ fr }
+	/ g:gismu				{ g }
+	/ f:fuhivla				{ f }
+	/ t3f:type_3_fuhivla			{ t3f }
+ )							{ concat ir ++ b }
+
+type_3_fuhivla :: String
+	= {- !_:cmevla -} c:classifier s:syllable+ &_:space
+							{ concat $ c : s }
+
+fuhivla :: String
+	= {- !_:cmevla -} !_:cmavo !_:rafsi_string !_:slinkuhi
+		s0:syllable ss:syllable+ &_:space	{ concat $ s0 : ss }
+
+gismu :: String
+	= fr:full_rafsi &_:space			{ fr }
+
+final_rafsi :: String
+	= {- !_:cmevla -} sr: short_rafsi &_:space	{ sr }
+
+initial_rafsi :: String
+	= ylr:y_less_rafsi				{ ylr }
+	/ yr:y_rafsi					{ yr }
+	/ fr:fuhivla_rafsi				{ fr }
+	/ t3r:type_3_rafsi				{ t3r }
+	/ br:brivla_rafsi				{ br }
+
+brivla_rafsi :: String
+	= !_:cmavo !_:slinkuhi s0:syllable ss:syllable+ h:h y:y
+							{ concat (s0 : ss) ++
+								[h, y] }
+
+type_3_rafsi :: String
+	= c:classifier s:syllable* o:onset y:y		{ c ++ concat s ++ o ++
+								[y] }
+
+fuhivla_rafsi :: String
+	= !_:cmavo !_:rafsi_string !_:slinkuhi s:syllable+ o:onset y:y
+							{ concat s ++ o ++ [y] }
+
+slinkuhi :: String
+	= c:C rs:rafsi_string				{ c : rs }
+
+rafsi_string :: String = ylrs:y_less_rafsi* b:
+	( g:gismu				{ g }
+	/ f:final_rafsi				{ f }
+	/ yr:y_rafsi				{ yr }
+	/ cc:CC y:y				{ cc ++ [y] }
+	/ h:h y:y				{ [h, y] }
+	/ fr:full_rafsi h:h y:y			{ fr ++ [h, y] }
+ )							{ concat ylrs ++ b }
+
+y_less_rafsi :: String
+	= sr:short_rafsi &_:rafsi_string		{ sr }
+
+classifier :: String
+	= c1:C v:V c2:C cr:CR				{ c1 : v : c2 : cr }
+	/ cc:CC v:V cr:CR				{ cc ++ v : cr }
+	/ c:C v:V cr:CR					{ c : v : cr }
+	/ yr:y_rafsi r:R				{ yr ++ [r] }
+
+full_rafsi :: String
+	= c1:C v1:V c2:C c3:C v2:V			{ [c1, v1, c2, c3, v2] }
+	/ cc:CC v1:V c:C v2:V				{ cc ++ [v1, c, v2] }
+
+y_rafsi :: String
+	= c1:C v:V c2:C c3:C y:y			{ [c1, v, c2, c3, y] }
+	/ cc:CC v:V c:C y:y				{ cc ++ [v, c, y] }
+	/ c1:C v:V c2:C y:y				{ [c1, v, c2, y] }
 
 short_rafsi :: String
 	= c1:C v:V c2:C					{ [c1, v, c2] }
@@ -102,10 +242,10 @@ C :: Char
 	/ r:r						{ r }
 
 affricate :: String
-	= _:t _:c					{ "tc" }
-	/ _:t _:s					{ "ts" }
-	/ _:d _:j					{ "dj" }
-	/ _:d _:z					{ "dz" }
+	= t:t c:c					{ [t, c] }
+	/ t:t s:s					{ [t, s] }
+	/ d:d j:j					{ [d, j] }
+	/ d:d z:z					{ [d, z] }
 
 voiced :: Char
 	= b:b						{ b }
@@ -151,13 +291,14 @@ nucleus :: String
 	/ vv:VV						{ vv }
 	/ y:y						{ [y] }
 
-VV :: String = vv:(
-	_:a _:i { "ai" } / _:a _:u { "au" } / _:e _:i { "ei" } / _:o _:i {"oi" }
- ) !_:nucleus !_:I					{ vv }
+VV :: String = vv:
+	( a:a i:i { [a, i] } / a:a u:u { [a, u] }
+	/ e:e i:i { [e, i] } / o:o i:i { [o, i] }) !_:nucleus !_:I
+							{ vv }
 					
 
 V :: Char = v:(a:a { a } / e:e { e } / i:i { i } / o:o { o } / u:u { u })
-							{ v }
+	!_:nucleus					{ v }
 
 a :: Char = 'a'						{ 'a' }
 e :: Char = 'e'						{ 'e' }
@@ -174,6 +315,6 @@ non_space :: Char
 	= !_:space c					{ c }
 
 space :: ()
-	= c:[c `elem` ".\t\n\r?!\x0020"]
+	= c:[c `elem` ".\t\n\r?!\x0020"] / !_
 
 |]
