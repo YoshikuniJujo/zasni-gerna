@@ -6,12 +6,12 @@ module Language.Lojban.Parser.ZasniGerna.Parser (
 import Text.Papillon
 import Data.Maybe
 
-testParse :: String -> Either String String
+testParse :: String -> Either String Lojban
 testParse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
-	parsed = runError $ gerna_NU $ gerna_parse src
+	parsed = runError $ gerna_word_ZEI_word $ gerna_parse src
 
 showParseError :: ParseError (Pos String) Gerna_Derivs -> String
 showParseError pe =
@@ -31,9 +31,56 @@ showReading d n
 maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
+data Lojban
+	= ZEI Lojban [([(String, String)], [String])] [String]
+	| ZO String
+	| LOhU [String]
+	| ZOI String String String
+	| Word String
+	deriving Show
+
 [papillon|
 
 prefix: "gerna_"
+
+word_SI :: Lojban = w:
+	( z:word_ZEI_word			{ z }
+--	/ b:word_BU				{ b }
+	/ z:ZO_word				{ z }
+	/ l:LOhU_words_LEhU			{ l }
+	/ z:ZOI_anything			{ z }
+	/ a:any_word				{ Word a }
+ ) _:SI_tail						{ w }
+
+-- word_BU :: Lojban
+
+word_ZEI_word :: Lojban = w:
+	( z:ZO_word				{ z }
+	/ l:LOhU_words_LEhU			{ l }
+	/ z:ZOI_anything			{ z }
+	/ a:any_word				{ Word a }
+ ) zbs:
+	(zts:(zt:ZEI_tail { ("zei", zt) } )*
+		bts:(bt:BU_tail { "bu" })+	{ (zts, bts) }
+ )* z:ZEI_tail+						{ ZEI w zbs z }
+
+SU_tail :: () = _:word_SI* _:SU
+
+SI_tail :: () = _:word_SI* _:SI
+
+BU_tail :: () = _:word_SI* _:BU
+
+ZEI_tail :: String = _:word_SI* _:ZEI w:any_word	{ w }
+
+ZO_word :: Lojban = _:ZO w:any_word			{ ZO w }
+
+LOhU_words_LEhU :: Lojban = _:LOhU ws:
+	(!_:LEhU w:any_word			{ w }
+ )* _:LEhU						{ LOhU ws }
+
+ZOI_anything :: Lojban = z:ZOI sep:any_word str:
+	( !w:any_word[w == sep] c:anything	{ c }
+ )* sep':any_word[sep == sep']				{ ZOI z sep $ unwords str }
 
 -- ****** WORDS ******
 
@@ -165,7 +212,7 @@ BAI :: String = _:Y* &_:cmavo r:
 	/ s:s a:a u:u				{ [s, a, u] }
 	/ f:f a:a h:h e:e			{ [f, a, h, e] }
 	/ b:b e:e h:h i:i			{ [b, e, h, i] }
-	/ t:t i:i h:h i':i			{ [b, i, h, i'] }
+	/ t:t i:i h:h i':i			{ [t, i, h, i'] }
 	/ j:j a:a h:h e:e			{ [j, a, h, e] }
 	/ g:g a:a h:h a':a			{ [g, a, h, a'] }
 	/ v:v a:a h:h o:o			{ [v, a, h, o] }
@@ -761,7 +808,7 @@ ZEI :: String = _:Y* &_:cmavo r:(z:z e:e i:i { [z, e, i] }) &_:post_cmavo
 ZIhE :: String = _:Y* &_:cmavo r:(z:z i:i h:h e:e { [z, i, h, e] }) &_:post_cmavo
 							{ r }
 
-ZO :: String = _:Y* &_:cmavo r:(z:z o:o { [z, o] }) &_:post_cmavo
+ZO :: String = _:Y* &_:cmavo r:(z:z o:o { [z, o] }) &_:post_cmavo !_:i
 							{ r }
 
 ZOI :: String = _:Y* &_:cmavo r:
@@ -779,7 +826,7 @@ cmevla :: String
 	/ z:zifcme					{ z }
 
 jbocme :: String = &_:zifcme s:
-	(o:onset n:nucleus c:coda? { o ++ n ++ maybeToList c })+ &_:space
+	(o:onset n:nucleus c:coda? { o ++ n ++ maybeToList c })+ &_:space'
 							{ concat s }
 
 zifcme :: String = !_:h cs:
@@ -788,11 +835,11 @@ zifcme :: String = !_:h cs:
 	/ y:y					{ [y] }
 	/ i:I					{ [i] }
 	/ h:h					{ [h] }
-	/ c:C !_:space				{ [c] }
- )* c:C &_:space					{ concat cs ++ [c] }
+	/ c:C !_:space'				{ [c] }
+ )* c:C &_:space'					{ concat cs ++ [c] }
 
 cmavo :: String
-	= {- !_:cmevla -} !_:CVCy_lujvo c:C? i:I? n:nucleus
+	= !_:cmevla !_:CVCy_lujvo c:C? i:I? n:nucleus
 		hns:(h:h n:nucleus { h : n })* &_:post_cmavo
 							{ catMaybes [c, i] ++
 								n ++ concat hns }
@@ -801,7 +848,7 @@ CVCy_lujvo :: ()
 	= _:C _:V _:C _:y _:initial_rafsi*
 		_:(_:final_rafsi / _:gismu / _:fuhivla / _:type_3_fuhivla)
 
-post_cmavo :: () = _:space / _:cmavo / _:brivla
+post_cmavo :: () = _:space' / _:cmavo / _:brivla
 
 brivla :: String
 	= g:gismu					{ g }
@@ -817,18 +864,18 @@ lujvo :: String = !_:cmavo !_:h ir:initial_rafsi+ b:
  )							{ concat ir ++ b }
 
 type_3_fuhivla :: String
-	= {- !_:cmevla -} c:classifier s:syllable+ &_:space
+	= !_:cmevla c:classifier s:syllable+ &_:space'
 							{ concat $ c : s }
 
 fuhivla :: String
-	= {- !_:cmevla -} !_:cmavo !_:rafsi_string !_:slinkuhi
-		s0:syllable ss:syllable+ &_:space	{ concat $ s0 : ss }
+	= !_:cmevla !_:cmavo !_:rafsi_string !_:slinkuhi
+		s0:syllable ss:syllable+ &_:space'	{ concat $ s0 : ss }
 
 gismu :: String
-	= fr:full_rafsi &_:space			{ fr }
+	= fr:full_rafsi &_:space'			{ fr }
 
 final_rafsi :: String
-	= {- !_:cmevla -} sr: short_rafsi &_:space	{ sr }
+	= !_:cmevla sr: short_rafsi &_:space'	{ sr }
 
 initial_rafsi :: String
 	= ylr:y_less_rafsi				{ ylr }
@@ -1019,7 +1066,10 @@ Y :: String
 non_space :: Char
 	= !_:space c					{ c }
 
+space' :: ()
+	= _:space / !_
+
 space :: ()
-	= c:[c `elem` ".\t\n\r?!\x0020"] / !_
+	= c:[c `elem` ".\t\n\r?!\x0020"]
 
 |]
