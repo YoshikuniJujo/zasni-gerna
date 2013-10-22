@@ -70,6 +70,114 @@ BAI :: String = _:Y* &_:cmavo r:
 	/ v:v i:i				{ [v, i] }
 	/ v:v a:a				{ [v, a] }
 	/ v:v u:u				{ [v, u] }
+	/ d:d u:u h:h a:a			{ [d, u, h, a] }
+	/ b:b e:e h:h a:a			{ [b, e, h, a] }
+	/ n:n e:e h:h u:u			{ [n, e, h, u] }
+	/ v:v u:u h:h a:a			{ [v, u, h, a] }
+	/ g:g a:a h:h u:u			{ [g, a, h, u] }
+	/ t:t i:i h:h a:a			{ [t, i, h, a] }
+	/ n:n i:i h:h a:a			{ [n, i, h, a] }
+	/ c:c a:a h:h u:u			{ [c, a, h, u] }
+	/ z:z u:u h:h a:a			{ [z, u, h, a] }
+	/ r:r i:i h:h u:u			{ [r, i, h, u] }
+	/ r:r u:u h:h u:u			{ [r, u, h, u] }
+	/ r:r e:e h:h o:o			{ [r, e, h, o] }
+	/ t:t e:e h:h e':e			{ [t, e, h, e'] }
+	/ b:b u:u h:h u':u			{ [b, u, h, u'] }
+	/ n:n e:e h:h a:a			{ [n, e, h, a] }
+	/ p:p a:a h:h o:o			{ [p, a, h, o] }
+	/ n:n e:e h:h i:i			{ [n, e, h, i] }
+	/ t:t o:o h:h o':o			{ [t, o, h, o'] }
+	/ z:z o:o h:h i:i			{ [z, o, h, i] }
+	/ z:z e:e h:h o:o			{ [z, e, h, o] }
+	/ z:z o:o h:h a:a			{ [z, o, h, a] }
+	/ f:f a:a h:h a':a			{ [f, a, h, a'] }
+	/ z:z e:e h:h u:u			{ [z, e, h, u] }
+	/ z:z e:e h:h a:a			{ [z, e, h, a] }
+	/ z:z e:e h:h i:i			{ [z, e, h, i] }
+	/ z:z e:e h:h e:e			{ [z, e, h, e] }
+	/ c:c o:o h:h i:i			{ [c, o, h, i] }
+	/ p:p u:u h:h o:o			{ [p, u, h, o] }
+	/ c:c o:o h:h u:u			{ [c, o, h, u] }
+	/ m:m o:o h:h u:u			{ [m, o, h, u] }
+	/ c:c a:a h:h o:o			{ [c, a, h, o] }
+	/ c:c o:o h:h a:a			{ [c, o, h, a] }
+	/ d:d e:e h:h a:a			{ [d, e, h, a] }
+	/ b:b a:a h:h o:o			{ [b, a, h, o] }
+	/ d:d i:i h:h a:a			{ [d, i, h, a] }
+	/ z:z a:a h:h o:o			{ [z, a, h, o] }
+	/ z:z u:u				{ [z, u] }
+	/ z:z a:a				{ [z, a] }
+	/ z:z i:i				{ [z, i] }
+	/ b:b a:a				{ [b, a] }
+	/ p:p u:u				{ [p, u] }
+	/ c:c a:a				{ [c, a] }
+	/ k:k i:i				{ [k, i] }
+	/ d:d u:u h:h o:o			{ [d, u, h, o] }
+	/ s:s i:i h:h u:u			{ [s, i, h, u] }
+	/ z:z a:a u:u				{ [z, a, u] }
+	/ k:k i:i h:h i':i			{ [k, i, h, i'] }
+	/ d:d u:u h:h i:i			{ [d, u, h, i] }
+	/ c:c u:u h:h u':u			{ [c, u, h, u'] }
+	/ t:t u:u h:h i:i			{ [t, u, h, i] }
+	/ t:t i:i h:h u:u			{ [t, i, h, u] }
+	/ d:d i:i h:h o:o			{ [d, i, h, o] }
+	/ j:j i:i h:h u:u			{ [j, i, h, u] }
+	/ r:r i:i h:h a:a			{ [r, i, h, a] }
+	/ n:n i:i h:h i':i			{ [n, i, h, i'] }
+	/ m:m u:u h:h i:i			{ [m, u, h, i] }
+	/ k:k i:i h:h u:u			{ [k, i, h, u] }
+	/ v:v a:a h:h u:u			{ [v, a, h, u] }
+	/ k:k o:o i:i				{ [k, o, i] }
+	/ c:c a:a h:h i:i			{ [c, a, h, i] }
+	/ t:t a:a h:h i:i			{ [t, a, h, i] }
+	/ p:p u:u h:h e:e			{ [p, u, h, e] }
+	/ j:j a:a h:h i:i			{ [j, a, h, i] }
+	/ k:k a:a i:i				{ [k, a, i] }
+	/ b:b a:a i:i				{ [b, a, i] }
+	/ f:f i:i h:h e:e			{ [f, i, h, e] }
+	/ d:d e:e h:h i:i			{ [d, e, h, i] }
+	/ c:c i:i h:h o:o			{ [c, i, h, o] }
+	/ m:m a:a u:u				{ [m, a, u] }
+	/ m:m u:u h:h u':u			{ [m, u, h, u'] }
+	/ r:r i:i h:h i':i			{ [r, i, h, i'] }
+	/ r:r a:a h:h i:i			{ [r, a, h, i] }
+	/ k:k a:a h:h a:a			{ [k, a, h, a] }
+	/ p:p a:a h:h u:u			{ [p, a, h, u] }
+	/ p:p a:a h:h a:a			{ [p, a, h, a] }
+	/ l:l e:e h:h a:a			{ [l, e, h, a] }
+	/ k:k u:u h:h u:u			{ [k, u, h, u] }
+	/ t:t a:a i:i				{ [t, a, i] }
+	/ b:b a:a u:u				{ [b, a, u] }
+	/ m:m a:a h:h i:i			{ [m, a, h, i] }
+	/ c:c i:i h:h e:e			{ [c, i, h, e] }
+	/ f:f a:a u:u				{ [f, a, u] }
+	/ p:p o:o h:h i:i			{ [p, o, h, i] }
+	/ c:c a:a u:u				{ [c, a, u] }
+	/ m:m a:a h:h e:e			{ [m, a, h, e] }
+	/ c:c i:i h:h u:u			{ [c, i, h, u] }
+	/ r:r a:a h:h a':a			{ [r, a, h, a'] }
+	/ p:p u:u h:h a:a			{ [p, u, h, a] }
+	/ l:l i:i h:h e:e			{ [l, i, h, e] }
+	/ l:l a:a h:h u:u			{ [l, a, h, u] }
+	/ b:b a:a h:h i:i			{ [b, a, h, i] }
+	/ k:k a:a h:h i:i			{ [k, a, h, i] }
+	/ s:s a:a u:u				{ [s, a, u] }
+	/ f:f a:a h:h e:e			{ [f, a, h, e] }
+	/ b:b e:e h:h i:i			{ [b, e, h, i] }
+	/ t:t i:i h:h i':i			{ [b, i, h, i'] }
+	/ j:j a:a h:h e:e			{ [j, a, h, e] }
+	/ g:g a:a h:h a':a			{ [g, a, h, a'] }
+	/ v:v a:a h:h o:o			{ [v, a, h, o] }
+	/ j:j i:i h:h o:o			{ [j, i, h, o] }
+	/ m:m e:e h:h a:a			{ [m, e, h, a] }
+	/ d:d o:o h:h e:e			{ [d, o, h, e] }
+	/ j:j i:i h:h e:e			{ [j, i, h, e] }
+	/ p:p i:i h:h o:o			{ [p, i, h, o] }
+	/ g:g a:a u:u				{ [g, a, u] }
+	/ z:z u:u h:h e:e			{ [z, u, h, e] }
+	/ m:m e:e h:h e':e			{ [m, e, h, e'] }
+	/ r:r a:a i:i				{ [r, a, i] }
  ) &_:post_cmavo					{ r }
 
 BAhE :: String = _:Y* &_:cmavo r:(b:b a:a h:h e:e { [b, a, h, e] }) &_:post_cmavo
