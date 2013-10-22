@@ -35,6 +35,291 @@ maybeCons mx xs = maybe xs (: xs) mx
 
 prefix: "gerna_"
 
+-- ****** WORDS ******
+
+anything :: String = _:Y* ns:non_space+			{ ns }
+
+any_word :: String
+	= c:CMEVLA					{ c }
+	/ b:BRIVLA					{ b }
+	/ c:CMAVO					{ c }
+
+CMEVLA :: String = _:Y* c:cmevla			{ c }
+BRIVLA :: String = _:Y* b:brivla			{ b }
+CMAVO :: String = _:Y* c:cmavo				{ c }
+
+BAI :: String = _:Y* &_:cmavo r:
+	( c:c a:a h:h a:a			{ [c, a, h, a] }
+	/ p:p u:u h:h i:i			{ [p, u, h, i] }
+	/ n:n u:u h:h o:o			{ [n, u, h, o] }
+	/ k:k a:a h:h e:e			{ [k, a, h, e] }
+	/ c:c u:u h:h e:e			{ [c, u, h, e] }
+	/ n:n a:a u:u				{ [n, a, u] }
+	/ r:r u:u h:h i:i			{ [r, u, h, i] }
+	/ t:t a:a h:h e:e			{ [t, a, h, e] }
+	/ d:d i:i h:h i':i			{ [d, i, h, i'] }
+	/ n:n a:a h:h o:o			{ [n, a, h, o] }
+	/ v:v e:e h:h u:u			{ [v, e, h, u] }
+	/ v:v e:e h:h a:a			{ [v, e, h, a] }
+	/ v:v e:e h:h i:i			{ [v, e, h, i] }
+	/ v:v e:e h:h e:e			{ [v, e, h, e] }
+	/ v:v i:i h:h i:i			{ [v, i, h, i] }
+	/ v:v i:i h:h a:a			{ [v, i, h, a] }
+	/ v:v i:i h:h u:u			{ [v, i, h, u] }
+	/ v:v i:i h:h e:e			{ [v, i, h, e] }
+	/ v:v i:i				{ [v, i] }
+	/ v:v a:a				{ [v, a] }
+	/ v:v u:u				{ [v, u] }
+ ) &_:post_cmavo					{ r }
+
+BAhE :: String = _:Y* &_:cmavo r:(b:b a:a h:h e:e { [b, a, h, e] }) &_:post_cmavo
+							{ r }
+
+BE :: String = _:Y* &_:cmavo r:(b:b e:e { [b, e] }) &_:post_cmavo
+							{ r }
+
+BEI :: String = _:Y* &_:cmavo r:(b:b e:e i:i { [b, e, i] }) &_:post_cmavo
+							{ r }
+
+BEhO :: String = _:Y* &_:cmavo r:(b:b e:e h:h o:o { [b, e, h, o] }) &_:post_cmavo
+							{ r }
+
+BO :: String = _:Y* &_:cmavo r:(b:b o:o { [b, o] }) &_:post_cmavo
+							{ r }
+
+BOI :: String = _:Y* &_:cmavo r:(b:b o:o i:i { [b, o, i] }) &_:post_cmavo
+							{ r }
+
+BU :: String = _:Y* &_:cmavo r:(b:b u:u { [b, u] }) &_:post_cmavo
+							{ r }
+
+BY :: String = _:Y* &_:cmavo r:
+	( t:t e:e i:i				{ [t, e, i] }
+	/ f:f o:o i:i				{ [f, o, i] }
+	/ c:c e:e h:h a:a			{ [c, e, h, a] }
+	/ l:l a:a u:u				{ [l, a, u] }
+	/ z:z a:a i:i				{ [z, a, i] }
+	/ t:t a:a u:u				{ [t, a, u] }
+	/ j:j o:o h:h o:o			{ [j, o, h, o] }
+	/ r:r u:u h:h o:o			{ [r, u, h, o] }
+	/ g:g e:e h:h o:o			{ [g, e, h, o] }
+	/ j:j e:e h:h o:o			{ [j, e, h, o] }
+	/ l:l o:o h:h a:a			{ [l, o, h, a] }
+	/ n:n a:a h:h a:a			{ [n, a, h, a] }
+	/ s:s e:e h:h e:e			{ [s, e, h, e] }
+	/ t:t o:o h:h a:a			{ [t, o, h, a] }
+	/ g:g a:a h:h e:e			{ [g, a, h, e] }
+	/ y:y h:h y:y				{ [y, h, y] }
+	/ b:b y:y				{ [b, y] }
+	/ c:c y:y				{ [c, y] }
+	/ d:d y:y				{ [d, y] }
+	/ f:f y:y				{ [f, y] }
+	/ g:g y:y				{ [g, y] }
+	/ j:j y:y				{ [j, y] }
+	/ k:k y:y				{ [k, y] }
+	/ l:l y:y				{ [l, y] }
+	/ m:m y:y				{ [m, y] }
+	/ n:n y:y				{ [n, y] }
+	/ p:p y:y				{ [p, y] }
+	/ r:r y:y				{ [r, y] }
+	/ s:s y:y				{ [s, y] }
+	/ t:t y:y				{ [t, y] }
+	/ v:v y:y				{ [v, y] }
+	/ x:x y:y				{ [x, y] }
+	/ z:z y:y				{ [z, y] }
+ ) &_:post_cmavo					{ r }
+
+CEI :: String = _:Y* &_:cmavo r:(c:c e:e i:i { [c, e, i] }) &_:cmavo
+							{ r }
+
+CO :: String = _:Y* &_:cmavo r:(c:c o:o { [c, o] }) &_:cmavo
+							{ r }
+
+CU :: String = _:Y* &_:cmavo r:(c:c u:u { [c, u] }) &_:cmavo
+							{ r }
+
+DOI :: String = _:Y* &_:cmavo r:(d:d o:o i:i { [d, o, i] }) &_:cmavo
+							{ r }
+
+DOhU :: String = _:Y* &_:cmavo r:(d:d o:o h:h u:u { [d, o, h, u] }) &_:cmavo
+							{ r }
+
+FA :: String = _:Y* &_:cmavo r:
+	( f:f a:a i:i				{ [f, a, i] }
+	/ f:f a:a				{ [f, a] }
+	/ f:f e:e				{ [f, e] }
+	/ f:f o:o				{ [f, o] }
+	/ f:f u:u				{ [f, u] }
+	/ f:f i:i h:h a:a			{ [f, i, h, a] }
+	/ f:f i:i				{ [f, i] }
+ ) &_:post_cmavo					{ r }
+
+FAhO :: String = _:Y* &_:cmavo r:(f:f a:a h:h o:o { [f, a, h, o] }) &_:post_cmavo
+							{ r }
+
+FEhU :: String = _:Y* &_:cmavo r:(f:f e:e h:h u:u { [f, e, h, u] }) &_:post_cmavo
+							{ r }
+
+FIhO :: String = _:Y* &_:cmavo r:(f:f i:i h:h o:o { [f, i, h, o] }) &_:post_cmavo
+							{ r }
+
+GA :: String = _:Y* &_:cmavo r:
+	( g:g e:e h:h i:i			{ [g, e, h, i] }
+	/ g:g e:e				{ [g, e] }
+	/ g:g o:o				{ [g, o] }
+	/ g:g a:a				{ [g, a] }
+	/ g:g u:u				{ [g, u] }
+ ) &_:post_cmavo					{ r }
+
+GEhU :: String = _:Y* &_:cmavo r:(g:g e:e h:h u:u { [g, e, h, u] }) &_:cmavo
+							{ r }
+
+GI :: String = _:Y* &_:cmavo r:(g:g i:i { [g, i] }) &_:cmavo
+							{ r }
+
+GIhA :: String = _:Y* &_:cmavo r:
+	( g:g i:i h:h e:e			{ [g, i, h, e] }
+	/ g:g i:i h:h i:i			{ [g, i, h, i] }
+	/ g:g i:i h:h o:o			{ [g, i, h, o] }
+	/ g:g i:i h:h a:a			{ [g, i, h, a] }
+	/ g:g i:i h:h u:u			{ [g, i, h, u] }
+ ) &_:post_cmavo					{ r }
+
+GOI :: String = _:Y* &_:cmavo r:
+	( n:n o:o h:h u:u			{ [n, o, h, u] }
+	/ n:n e:e				{ [n, e] }
+	/ g:g o:o i:i				{ [g, o, i] }
+	/ p:p o:o h:h u:u			{ [p, o, h, u] }
+	/ p:p e:e				{ [p, e] }
+	/ p:p o:o 				{ [p, o] }
+ ) &_:post_cmavo					{ r }
+
+GOhA :: String = _:Y* &_:cmavo r:
+	( m:m o:o				{ [m, o] }
+	/ n:n e:e i:i				{ [n, e, i] }
+	/ g:g o:o h:h u:u			{ [g, o, h, u] }
+	/ g:g o:o h:h o':o			{ [g, o, h, o'] }
+	/ g:g o:o h:h i:i			{ [g, o, h, i] }
+	/ n:n o:o h:h a:a			{ [n, o, h, a] }
+	/ g:g o:o h:h e:e			{ [g, o, h, e] }
+	/ g:g o:o h:h a:a			{ [g, o, h, a] }
+	/ d:d u:u				{ [d, u] }
+	/ b:b u:u h:h a:a			{ [b, u, h, a] }
+	/ b:b u:u h:h e:e			{ [b, u, h, e] }
+	/ b:b u:u h:h i:i			{ [b, u, h, i] }
+	/ c:c o:o h:h e:e			{ [c, o, h, e] }
+ ) &_:post_cmavo					{ r }
+
+SelmahoI :: String = _:Y* &_:cmavo r:(i:i { [i] }) &_:post_cmavo	{ r }
+
+JAI :: String = _:Y* &_:cmavo r:(j:j a:a i:i { [j, a, i] }) &_:post_cmavo
+							{ r }
+
+JOI :: String = _:Y* &_:cmavo r:
+	( f:f a:a h:h u:u			{ [f, a, h, u] }
+	/ p:p i:i h:h u:u			{ [p, i, h, u] }
+	/ j:j o:o i:i				{ [j, o, i] }
+	/ c:c e:e h:h o:o			{ [c, e, h, o] }
+	/ c:c e:e				{ [c, e] }
+	/ j:j o:o h:h u:u			{ [j, o, h, u] }
+	/ k:k u:u h:h a:a			{ [k, u, h, a] }
+	/ j:j o:o h:h e:e			{ [j, o, h, e] }
+	/ j:j u:u h:h e:e			{ [j, u, h, e] }
+	/ j:j o:o h:h i:i			{ [j, o, h, i] }
+	/ j:j e:e h:h i:i			{ [j, e, h, i] }
+	/ j:j e:e				{ [j, e] }
+	/ j:j o:o				{ [j, o] }
+	/ j:j a:a				{ [j, a] }
+	/ j:j u:u				{ [j, u] }
+	/ a:a					{ [a] }
+	/ e:e					{ [e] }
+	/ j:j i:i				{ [j, i] }
+	/ o:o					{ [o] }
+	/ u:u					{ [u] }
+	/ m:m i:i h:h i':i			{ [m, i, h, i'] }
+	/ b:b i:i h:h o:o			{ [b, i, h, o] }
+	/ b:b i:i h:h i':i			{ [b, i, h, i'] }
+	/ g:g e:e h:h a:a			{ [g, e, h, a] }
+	/ f:f u:u h:h u':u			{ [f, u, h, u'] }
+	/ p:p i:i h:h i':i			{ [p, i, h, i'] }
+	/ f:f e:e h:h i:i			{ [f, e, h, i] }
+	/ v:v u:u h:h u':u			{ [v, u, h, u'] }
+	/ s:s u:u h:h i:i			{ [s, u, h, i] }
+	/ j:j u:u h:h u:u			{ [j, u, h, u] }
+	/ g:g e:e i:i				{ [g, e, i] }
+	/ p:p a:a h:h i:i			{ [p, a, h, i] }
+	/ f:f a:a h:h i:i			{ [f, a, h, i] }
+	/ t:t e:e h:h a:a			{ [t, e, h, a] }
+	/ c:c u:u h:h a:a			{ [c, u, h, a] }
+	/ v:v a:a h:h a':a			{ [v, a, h, a'] }
+	/ n:n e:e h:h o:o			{ [n, e, h, o] }
+	/ d:d e:e h:h o:o			{ [d, e, h, o] }
+	/ f:f e:e h:h a:a			{ [f, e, h, a] }
+	/ s:s a:a h:h o:o			{ [s, a, h, o] }
+	/ r:r e:e h:h a:a			{ [r, e, h, a] }
+	/ r:r i:i h:h o:o			{ [r, i, h, o] }
+	/ s:s a:a h:h i:i			{ [s, a, h, i] }
+	/ p:p i:i h:h a:a			{ [p, i, h, a] }
+	/ s:s i:i h:h i:i			{ [s, i, h, i] }
+ ) &_:post_cmavo					{ r }
+
+KE :: String = _:Y* &_:cmavo r:(k:k e:e { [k, e] }) &_:post_cmavo
+							{ r }
+
+KEhE :: String = _:Y* &_:cmavo r:(k:k e:e h:h e':e { [k, e, h, e'] }) &_:post_cmavo
+							{ r }
+
+KEI :: String = _:Y* &_:cmavo r:(k:k e:e i:i { [k, e, i] }) &_:post_cmavo
+							{ r }
+
+KOhA :: String = _:Y* &_:cmavo r:
+	( d:d a:a h:h u:u			{ [d, a, h, u] }
+	/ d:d a:a h:h e:e			{ [d, a, h, e] }
+	/ d:d i:i h:h u:u			{ [d, i, h, u] }
+	/ d:d i:i h:h e:e			{ [d, i, h, e] }
+	/ d:d e:e h:h u:u			{ [d, e, h, u] }
+	/ d:d e:e h:h e:e			{ [d, e, h, e] }
+	/ d:d e:e i:i				{ [d, e, i] }
+	/ d:d o:o h:h i:i			{ [d, o, h, i] }
+	/ m:m i:i h:h o:o			{ [m, i, h, o] }
+	/ m:m a:a h:h a:a			{ [m, a, h, a] }
+	/ m:m i:i h:h a:a			{ [m, i, h, a] }
+	/ d:d o:o h:h o':o			{ [d, o, h, o'] }
+	/ k:k o:o h:h a:a			{ [k, o, h, a] }
+	/ f:f o:o h:h u:u			{ [f, o, h, u] }
+	/ k:k o:o h:h e:e			{ [k, o, h, e] }
+	/ k:k o:o h:h i:i			{ [k, o, h, i] }
+	/ k:k o:o h:h o':o			{ [k, o, h, o'] }
+	/ k:k o:o h:h u:u			{ [k, o, h, u] }
+	/ f:f o:o h:h a:a			{ [f, o, h, a] }
+	/ f:f o:o h:h e:e			{ [f, o, h, e] }
+	/ f:f o:o h:h i:i			{ [f, o, h, i] }
+	/ f:f o:o h:h o':o			{ [f, o, h, o'] }
+	/ v:v o:o h:h a:a			{ [v, o, h, a] }
+	/ v:v o:o h:h e:e			{ [v, o, h, e] }
+	/ v:v o:o h:h i:i			{ [v, o, h, i] }
+	/ v:v o:o h:h o:o			{ [v, o, h, o] }
+	/ v:v o:o h:h u:u			{ [v, o, h, u] }
+	/ r:r u:u				{ [r, u] }
+	/ r:r i:i				{ [r, i] }
+	/ r:r a:a				{ [r, a] }
+	/ t:t a:a				{ [t, a] }
+	/ t:t u:u				{ [t, u] }
+	/ t:t i:i				{ [t, i] }
+	/ z:z i:i h:h o:o			{ [z, i, h, o] }
+	/ k:k e:e h:h a:a			{ [k, e, h, a] }
+	/ m:m a:a				{ [m, a] }
+	/ z:z u:u h:h i:i			{ [z, u, h, i] }
+	/ z:z o:o h:h e:e			{ [z, o, h, e] }
+	/ c:c e:e h:h u:u			{ [c, e, h, u] }
+	/ d:d a:a				{ [d, a] }
+	/ d:d e:e				{ [d, e] }
+	/ d:d i:i				{ [d, i] }
+	/ k:k o:o				{ [k, o] }
+	/ m:m i:i				{ [m, i] }
+	/ d:d o:o				{ [d, o] }
+ ) &_:post_cmavo					{ r }
+
 KU :: String = _:Y* &_:cmavo r:(k:k u:u { [k, u] }) &_:post_cmavo
 							{ r }
 
