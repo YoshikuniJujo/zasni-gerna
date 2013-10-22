@@ -1,17 +1,18 @@
 {-# LANGUAGE TypeFamilies, QuasiQuotes #-}
 
 module Language.Lojban.Parser.ZasniGerna.Parser (
+	testParse
 ) where
 
 import Text.Papillon
 import Data.Maybe
 
-testParse :: String -> Either String Lojban
+testParse :: String -> Either String [Lojban]
 testParse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
-	parsed = runError $ gerna_word_ZEI_word $ gerna_parse src
+	parsed = runError $ gerna_words_SU $ gerna_parse src
 
 showParseError :: ParseError (Pos String) Gerna_Derivs -> String
 showParseError pe =
@@ -32,27 +33,50 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Lojban
-	= ZEI Lojban [([(String, String)], [String])] [String]
+	= BUStr Lojban [([BU], [ZEI])] [BU]
+	| ZEIStr Lojban [([ZEI], [BU])] [ZEI]
 	| ZO String
 	| LOhU [String]
 	| ZOI String String String
 	| Word String
 	deriving Show
 
+data ZEI = ZEI String deriving Show
+data BU = BU deriving Show
+
 [papillon|
 
 prefix: "gerna_"
 
+-- ****** MAGIC WORD CONSTRUCTS ******
+
+words_SU :: [Lojban] = ws:
+	( z:word_ZEI_word			{ z }
+	/ b:word_BU				{ b }
+	/ z:ZO_word				{ z }
+	/ l:LOhU_words_LEhU			{ l }
+	/ z:ZOI_anything			{ z }
+	/ !_:SU a:any_word			{ Word a }
+ )* _:SU_tail						{ ws }
+
 word_SI :: Lojban = w:
 	( z:word_ZEI_word			{ z }
---	/ b:word_BU				{ b }
+	/ b:word_BU				{ b }
 	/ z:ZO_word				{ z }
 	/ l:LOhU_words_LEhU			{ l }
 	/ z:ZOI_anything			{ z }
 	/ a:any_word				{ Word a }
  ) _:SI_tail						{ w }
 
--- word_BU :: Lojban
+word_BU :: Lojban = w:
+	( z:ZO_word				{ z }
+	/ l:LOhU_words_LEhU			{ l }
+	/ z:ZOI_anything			{ z }
+	/ a:any_word				{ Word a }
+ ) bzs:
+ 	( bts:(bt:BU_tail { bt })*
+		zts:(zt:ZEI_tail { zt })+	{ (bts, zts) }
+ )* b:BU_tail+						{ BUStr w bzs b }
 
 word_ZEI_word :: Lojban = w:
 	( z:ZO_word				{ z }
@@ -60,17 +84,17 @@ word_ZEI_word :: Lojban = w:
 	/ z:ZOI_anything			{ z }
 	/ a:any_word				{ Word a }
  ) zbs:
-	(zts:(zt:ZEI_tail { ("zei", zt) } )*
-		bts:(bt:BU_tail { "bu" })+	{ (zts, bts) }
- )* z:ZEI_tail+						{ ZEI w zbs z }
+	( zts:(zt:ZEI_tail { zt } )*
+		bts:(bt:BU_tail { bt })+	{ (zts, bts) }
+ )* z:ZEI_tail+						{ ZEIStr w zbs z }
 
 SU_tail :: () = _:word_SI* _:SU
 
 SI_tail :: () = _:word_SI* _:SI
 
-BU_tail :: () = _:word_SI* _:BU
+BU_tail :: BU = _:word_SI* _:BU				{ BU }
 
-ZEI_tail :: String = _:word_SI* _:ZEI w:any_word	{ w }
+ZEI_tail :: ZEI = _:word_SI* _:ZEI w:any_word		{ ZEI w }
 
 ZO_word :: Lojban = _:ZO w:any_word			{ ZO w }
 
