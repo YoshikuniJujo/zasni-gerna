@@ -48,7 +48,37 @@ data BU = BU deriving Show
 
 prefix: "gerna_"
 
--- ****** MAGIC WORD CONSTRUCTS ******
+-- ****** A. GRAMMAR ******
+
+-- 1. Text Paragraphs Statement
+
+-- 2. Sentence Bridi
+
+-- 3. Term Sumti
+
+-- 4. Mex
+
+-- 5. Relative
+
+-- 6. Selbri Tanru unit
+
+-- 7. Link args
+
+-- 8. Connective
+
+-- 9. Tense Modal
+
+-- 10. Free modifier
+
+-- ****** B. LOW LEVEL GRAMMAR ******
+
+--- 11. SELMAhO ---
+
+--- 12. Pseudo SELMAhO ---
+
+--- 13. Word Modifiers ---
+
+-- ****** C. MAGIC WORD CONSTRUCTS ******
 
 words_SU :: [Lojban] = ws:
 	( z:word_ZEI_word			{ z }
@@ -106,7 +136,7 @@ ZOI_anything :: Lojban = z:ZOI sep:any_word str:
 	( !w:any_word[w == sep] c:anything	{ c }
  )* sep':any_word[sep == sep']				{ ZOI z sep $ unwords str }
 
--- ****** WORDS ******
+-- ****** D. WORDS ******
 
 anything :: String = _:Y* ns:non_space+			{ ns }
 
@@ -843,7 +873,7 @@ ZOI :: String = _:Y* &_:cmavo r:
 ZOhU :: String = _:Y* &_:cmavo r:(z:z o:o h:h u:u { [z, o, h, u] }) &_:post_cmavo
 							{ r }
 
--- ****** MORPHOLOGY ******
+-- ****** E. MORPHOLOGY ******
 
 cmevla :: String
 	= j:jbocme					{ j }
