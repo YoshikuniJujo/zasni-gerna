@@ -33,7 +33,9 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= LE Initiator Relative Mex Text Terminator
+	= Q Mex Text
+	| QS Mex Text Terminator Relative
+	| LE Initiator Relative Mex Text Terminator
 	| Rel Text Relative
 	| KOhA [String] String Free
 	| BRIVLA String				-- stub
@@ -105,14 +107,20 @@ text :: (Text, Terminator)
 							{ (p, fromMaybe NT f) }
 
 -- stub
-paragraphs :: Text = s:bare_sumti { s }
+paragraphs :: Text = s:sumti { s }
 
 -- 2. Sentence Bridi
 
 -- 3. Term Sumti
 
 -- stub
-sumti :: Text = s:bare_sumti				{ s }
+sumti :: Text = s:sumti_2				{ s }
+
+sumti_2 :: Text
+	= q:quantifier? s:bare_sumti			{ maybe s (flip Q s) q }
+	/ q:quantifier s:selbri k:KU_? r:rels?		{ QS q s (fromMaybe NT k)
+								(fromMaybe NR r) }
+--	/ ge:gek s1:sumti gi:GI_ s2:sumti		{ Gek ge s1 gi s2 }
 
 bare_sumti :: Text = s:
 	( d:description				{ d }
