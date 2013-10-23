@@ -33,7 +33,8 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= Q Mex Text
+	= ConBO Text [(Connective, BO, Text)]
+	| Q Mex Text
 	| QS Mex Text Terminator Relative
 	| Gek Connective Text Connective Text
 	| LE Initiator Relative Mex Text Terminator
@@ -54,6 +55,10 @@ data Relative
 	| NR
 	deriving Show
 
+data Tag
+	= BAI [String] String Free
+	deriving Show
+
 data Mex
 	= Stub String
 	| NQ
@@ -62,6 +67,7 @@ data Mex
 data Connective
 	= GA [String] String Free
 	| GI [String] String Free
+	| JOI [String] String Free
 	deriving Show
 
 data Lerfu
@@ -81,6 +87,7 @@ data NAhE = NAhE [String] String Free
 	deriving Show
 
 data BO = BO [String] String Free
+	| TagBO Tag [String] String Free
 	deriving Show
 
 data Free
@@ -120,7 +127,12 @@ paragraphs :: Text = s:sumti { s }
 -- 3. Term Sumti
 
 -- stub
-sumti :: Text = s:sumti_2				{ s }
+sumti :: Text = s:sumti_1				{ s }
+
+sumti_1 :: Text = s1:sumti_2 jss:
+	( j:joik t:tag? (bw@(BO b bo f)):BO_ s2:sumti_2
+		{ (j, maybe bw (\t -> TagBO t b bo f) t, s2) }
+ )*	{ if null jss then s1 else ConBO s1 jss }
 
 sumti_2 :: Text
 	= q:quantifier? s:bare_sumti			{ maybe s (flip Q s) q }
@@ -183,9 +195,15 @@ selbri :: Text = b:BRIVLA	{ BRIVLA b }
 -- 8. Connective
 
 -- stub
+joik :: Connective = j:JOI_	{ j }
+
+-- stub
 gek :: Connective = g:GA_	{ g }
 
 -- 9. Tense Modal
+
+-- stub
+tag :: Tag = b:BAI_		{ b }
 
 -- 10. Free modifier
 
@@ -198,6 +216,8 @@ free :: Free
 -- ****** B. LOW LEVEL GRAMMAR ******
 
 --- 11. SELMAhO ---
+
+BAI_ :: Tag = pr:pre b:BAI ps:post			{ BAI pr b ps }
 
 FAhO_ :: Terminator = pr:pre f:FAhO ps:post		{ Term pr f ps }
 
@@ -212,6 +232,8 @@ BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
 GA_ :: Connective = pr:pre g:GA ps:post			{ GA pr g ps }
 
 GI_ :: Connective = pr:pre g:GI ps:post			{ GI pr g ps }
+
+JOI_ :: Connective = pr:pre j:JOI ps:post		{ JOI pr j ps }
 
 KOhA_ :: Text = pr:pre k:KOhA ps:post			{ KOhA pr k ps }
 
