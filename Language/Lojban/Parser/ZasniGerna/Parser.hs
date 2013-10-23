@@ -7,12 +7,12 @@ module Language.Lojban.Parser.ZasniGerna.Parser (
 import Text.Papillon
 import Data.Maybe
 
-testParse :: String -> Either String (Text, Maybe ())
+testParse :: String -> Either String (Text, Terminator)
 testParse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
-	parsed = runError $ gerna_bare_sumti $ gerna_parse src
+	parsed = runError $ gerna_text $ gerna_parse src
 
 showParseError :: ParseError (Pos String) Gerna_Derivs -> String
 showParseError pe =
@@ -33,8 +33,15 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= Clause [String] Word Free
+	= Rel Text Relative
+	| KOhA [String] String Free
+	| Clause [String] Word Free
 	| Lergum [Lerfu] Terminator
+	deriving Show
+
+data Relative
+	= GOIKOhA [String] String Free Text
+	| NR
 	deriving Show
 
 data Lerfu
@@ -71,25 +78,30 @@ prefix: "gerna_"
 
 -- 1. Text Paragraphs Statement
 
+text :: (Text, Terminator)
+	= _:words_SU* _:SI_tail* ps:post p:paragraphs f:FAhO_?
+							{ (p, fromMaybe NT f) }
+
+-- stub
+paragraphs :: Text = s:bare_sumti { s }
+
 -- 2. Sentence Bridi
 
 -- 3. Term Sumti
 
-bare_sumti :: (Text, Maybe ()) = s:
+bare_sumti :: Text = s:
 	-- ( d:description
 	-- / _:LI_ m:mex _:LOhO_?
 	( z:ZO_word_				{ z }
 	-- / _:LU_ p:paragraphs _:LIhU_?
 	/ l:LOhU_words_LEhU_			{ l }
 	/ z:ZOI_anything_			{ z }
-	-- / _:KOhA_
---	/ !_:tag !_:selbri ls:(l:lerfu { l })+ b:BOI_?
---						{ Lergum ls $ fromMaybe NT b }
-	/ ls:(l:lerfu { l })+ b:BOI_?
+	/ k:KOhA_				{ k }
+	/ {- !_:tag !_:selbri -} ls:(l:lerfu { l })+ b:BOI_?
 						{ Lergum ls $ fromMaybe NT b }
 	-- / !_:tag !_:selbri ln:(l:LAhE_ { l } / n:NAhE_ b:BO_ { n b })
 	-- 	r:rels? s:sumti _:LUhU_?
- ) r:rels?						{ (s, r) }
+ ) r:rels?						{ maybe s (Rel s) r }
 
 -- 4. Mex
 
@@ -99,7 +111,8 @@ lerfu :: Lerfu
 
 -- 5. Relative
 
-rels :: () = 'h' 'o' 'g' 'e' { () }
+-- stub
+rels :: Relative = (b, g, f):GOI_ k:KOhA_ { GOIKOhA b g f k }
 
 -- 6. Selbri Tanru unit
 
@@ -114,13 +127,22 @@ rels :: () = 'h' 'o' 'g' 'e' { () }
 free :: Free
 	= u:UI_						{ u }
 
+-- vocative :: Free
+--	= 
+
 -- ****** B. LOW LEVEL GRAMMAR ******
 
 --- 11. SELMAhO ---
 
+FAhO_ :: Terminator = pr:pre f:FAhO ps:post		{ Term pr f ps }
+
+GOI_ :: ([String], String, Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
+
 BOI_ :: Terminator = pr:pre b:BOI ps:post		{ Term pr b ps }
 
 BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
+
+KOhA_ :: Text = pr:pre k:KOhA ps:post			{ KOhA pr k ps }
 
 UI_ :: Free = pr:pre u:UI ps:post			{ UI pr u ps }
 
