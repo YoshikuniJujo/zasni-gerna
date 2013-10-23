@@ -7,12 +7,12 @@ module Language.Lojban.Parser.ZasniGerna.Parser (
 import Text.Papillon
 import Data.Maybe
 
-testParse :: String -> Either String [Lojban]
+testParse :: String -> Either String (Text, Maybe ())
 testParse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
-	parsed = runError $ gerna_words_SU $ gerna_parse src
+	parsed = runError $ gerna_bare_sumti $ gerna_parse src
 
 showParseError :: ParseError (Pos String) Gerna_Derivs -> String
 showParseError pe =
@@ -32,9 +32,28 @@ showReading d n
 maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
-data Lojban
-	= BUStr Lojban [([BU], [ZEI])] [BU]
-	| ZEIStr Lojban [([ZEI], [BU])] [ZEI]
+data Text
+	= Clause [String] Word Free
+	| Lergum [Lerfu] Terminator
+	deriving Show
+
+data Lerfu
+	= Lerfu [String] Word Free
+	deriving Show
+
+data Terminator
+	= Term [String] String Free
+	| NT
+	deriving Show
+
+data Free
+	= UI [String] String Free
+	| NF
+	deriving Show
+
+data Word
+	= BUStr Word [([BU], [ZEI])] [BU]
+	| ZEIStr Word [([ZEI], [BU])] [ZEI]
 	| ZO String
 	| LOhU [String]
 	| ZOI String String String
@@ -56,9 +75,31 @@ prefix: "gerna_"
 
 -- 3. Term Sumti
 
+bare_sumti :: (Text, Maybe ()) = s:
+	-- ( d:description
+	-- / _:LI_ m:mex _:LOhO_?
+	( z:ZO_word_				{ z }
+	-- / _:LU_ p:paragraphs _:LIhU_?
+	/ l:LOhU_words_LEhU_			{ l }
+	/ z:ZOI_anything_			{ z }
+	-- / _:KOhA_
+--	/ !_:tag !_:selbri ls:(l:lerfu { l })+ b:BOI_?
+--						{ Lergum ls $ fromMaybe NT b }
+	/ ls:(l:lerfu { l })+ b:BOI_?
+						{ Lergum ls $ fromMaybe NT b }
+	-- / !_:tag !_:selbri ln:(l:LAhE_ { l } / n:NAhE_ b:BO_ { n b })
+	-- 	r:rels? s:sumti _:LUhU_?
+ ) r:rels?						{ (s, r) }
+
 -- 4. Mex
 
+lerfu :: Lerfu
+	= b:BY_						{ b }
+	/ b:word_BU_					{ b }
+
 -- 5. Relative
+
+rels :: () = 'h' 'o' 'g' 'e' { () }
 
 -- 6. Selbri Tanru unit
 
@@ -70,17 +111,49 @@ prefix: "gerna_"
 
 -- 10. Free modifier
 
+free :: Free
+	= u:UI_						{ u }
+
 -- ****** B. LOW LEVEL GRAMMAR ******
 
 --- 11. SELMAhO ---
 
+BOI_ :: Terminator = pr:pre b:BOI ps:post		{ Term pr b ps }
+
+BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
+
+UI_ :: Free = pr:pre u:UI ps:post			{ UI pr u ps }
+
 --- 12. Pseudo SELMAhO ---
+
+word_ZEI_word_ :: Text = pr:pre z:word_ZEI_word ps:post	{ Clause pr z ps }
+
+word_BU_ :: Lerfu = pr:pre b:word_BU ps:post		{ Lerfu pr b ps }
+
+ZO_word_ :: Text = pr:pre z:ZO_word ps:post		{ Clause pr z ps }
+
+LOhU_words_LEhU_ :: Text = pr:pre l:LOhU_words_LEhU ps:post
+							{ Clause pr l ps }
+
+ZOI_anything_ :: Text = pr:pre z:ZOI_anything ps:post	{ Clause pr z ps }
 
 --- 13. Word Modifiers ---
 
+pre :: [String] = bs:(_:word_SI* b:BAhE { b })* _:word_SI*
+							{ bs }
+
+post :: Free = !_:BU_tail !_:ZEI_tail f:free?		{ fromMaybe NF f }
+
+-- number_post :: () = !_:BU_tail !_:ZEI_tail (!_:PA_ _:free)?
+
+lerfu_post :: Free = !_:BU_tail !_:ZEI_tail fr:(!_:lerfu f:free { f })?
+							{ fromMaybe NF fr }
+
+-- vocative_post :: () = !_:BU_tail !_:ZEI_tail (!_:vocative _:free)?
+
 -- ****** C. MAGIC WORD CONSTRUCTS ******
 
-words_SU :: [Lojban] = ws:
+words_SU :: [Word] = ws:
 	( z:word_ZEI_word			{ z }
 	/ b:word_BU				{ b }
 	/ z:ZO_word				{ z }
@@ -89,7 +162,7 @@ words_SU :: [Lojban] = ws:
 	/ !_:SU a:any_word			{ Word a }
  )* _:SU_tail						{ ws }
 
-word_SI :: Lojban = w:
+word_SI :: Word = w:
 	( z:word_ZEI_word			{ z }
 	/ b:word_BU				{ b }
 	/ z:ZO_word				{ z }
@@ -98,7 +171,7 @@ word_SI :: Lojban = w:
 	/ a:any_word				{ Word a }
  ) _:SI_tail						{ w }
 
-word_BU :: Lojban = w:
+word_BU :: Word = w:
 	( z:ZO_word				{ z }
 	/ l:LOhU_words_LEhU			{ l }
 	/ z:ZOI_anything			{ z }
@@ -108,7 +181,7 @@ word_BU :: Lojban = w:
 		zts:(zt:ZEI_tail { zt })+	{ (bts, zts) }
  )* b:BU_tail+						{ BUStr w bzs b }
 
-word_ZEI_word :: Lojban = w:
+word_ZEI_word :: Word = w:
 	( z:ZO_word				{ z }
 	/ l:LOhU_words_LEhU			{ l }
 	/ z:ZOI_anything			{ z }
@@ -126,13 +199,13 @@ BU_tail :: BU = _:word_SI* _:BU				{ BU }
 
 ZEI_tail :: ZEI = _:word_SI* _:ZEI w:any_word		{ ZEI w }
 
-ZO_word :: Lojban = _:ZO w:any_word			{ ZO w }
+ZO_word :: Word = _:ZO w:any_word			{ ZO w }
 
-LOhU_words_LEhU :: Lojban = _:LOhU ws:
+LOhU_words_LEhU :: Word = _:LOhU ws:
 	(!_:LEhU w:any_word			{ w }
  )* _:LEhU						{ LOhU ws }
 
-ZOI_anything :: Lojban = z:ZOI sep:any_word str:
+ZOI_anything :: Word = z:ZOI sep:any_word str:
 	( !w:any_word[w == sep] c:anything	{ c }
  )* sep':any_word[sep == sep']				{ ZOI z sep $ unwords str }
 
@@ -281,7 +354,10 @@ BAI :: String = _:Y* &_:cmavo r:
 	/ r:r a:a i:i				{ [r, a, i] }
  ) &_:post_cmavo					{ r }
 
-BAhE :: String = _:Y* &_:cmavo r:(b:b a:a h:h e:e { [b, a, h, e] }) &_:post_cmavo
+BAhE :: String = _:Y* &_:cmavo r:
+	( b:b a:a h:h e:e			{ [b, a, h, e] }
+	/ z:z a:a h:h e:e			{ [z, a, h, e] }
+ ) &_:post_cmavo
 							{ r }
 
 BE :: String = _:Y* &_:cmavo r:(b:b e:e { [b, e] }) &_:post_cmavo
