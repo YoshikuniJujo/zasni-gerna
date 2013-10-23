@@ -35,6 +35,7 @@ maybeCons mx xs = maybe xs (: xs) mx
 data Text
 	= Rel Text Relative
 	| KOhA [String] String Free
+	| LU Initiator Text Terminator
 	| Clause [String] Word Free
 	| Lergum [Lerfu] Terminator
 	deriving Show
@@ -46,6 +47,10 @@ data Relative
 
 data Lerfu
 	= Lerfu [String] Word Free
+	deriving Show
+
+data Initiator
+	= Init [String] String Free
 	deriving Show
 
 data Terminator
@@ -93,13 +98,13 @@ bare_sumti :: Text = s:
 	-- ( d:description
 	-- / _:LI_ m:mex _:LOhO_?
 	( z:ZO_word_				{ z }
-	-- / _:LU_ p:paragraphs _:LIhU_?
+	/ lu:LU_ p:paragraphs li:LIhU_?		{ LU lu p $ fromMaybe NT li }
 	/ l:LOhU_words_LEhU_			{ l }
 	/ z:ZOI_anything_			{ z }
 	/ k:KOhA_				{ k }
 	/ {- !_:tag !_:selbri -} ls:(l:lerfu { l })+ b:BOI_?
 						{ Lergum ls $ fromMaybe NT b }
-	-- / !_:tag !_:selbri ln:(l:LAhE_ { l } / n:NAhE_ b:BO_ { n b })
+	-- / {- !_:tag !_:selbri -} ln:(l:LAhE_ { l } / n:NAhE_ b:BO_ { n b })
 	-- 	r:rels? s:sumti _:LUhU_?
  ) r:rels?						{ maybe s (Rel s) r }
 
@@ -143,6 +148,10 @@ BOI_ :: Terminator = pr:pre b:BOI ps:post		{ Term pr b ps }
 BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
 
 KOhA_ :: Text = pr:pre k:KOhA ps:post			{ KOhA pr k ps }
+
+LIhU_ :: Terminator = pr:pre l:LIhU ps:post		{ Term pr l ps }
+
+LU_ :: Initiator = pr:pre l:LU ps:post			{ Init pr l ps }
 
 UI_ :: Free = pr:pre u:UI ps:post			{ UI pr u ps }
 
