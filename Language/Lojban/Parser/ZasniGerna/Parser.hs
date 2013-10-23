@@ -37,6 +37,8 @@ data Text
 	| KOhA [String] String Free
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
+	| LAhE Initiator Relative Text Terminator
+	| NAhEBO NAhE BO Relative Text Terminator
 	| Clause [String] Word Free
 	| Lergum [Lerfu] Terminator
 	deriving Show
@@ -61,6 +63,12 @@ data Initiator
 data Terminator
 	= Term [String] String Free
 	| NT
+	deriving Show
+
+data NAhE = NAhE [String] String Free
+	deriving Show
+
+data BO = BO [String] String Free
 	deriving Show
 
 data Free
@@ -99,6 +107,9 @@ paragraphs :: Text = s:bare_sumti { s }
 
 -- 3. Term Sumti
 
+-- stub
+sumti :: Text = s:bare_sumti				{ s }
+
 bare_sumti :: Text = s:
 	-- ( d:description
 	( li:LI_ m:mex lo:LOhO_?		{ LI li m $ fromMaybe NT lo }
@@ -109,8 +120,18 @@ bare_sumti :: Text = s:
 	/ k:KOhA_				{ k }
 	/ {- !_:tag !_:selbri -} ls:(l:lerfu { l })+ b:BOI_?
 						{ Lergum ls $ fromMaybe NT b }
-	-- / {- !_:tag !_:selbri -} ln:(l:LAhE_ { l } / n:NAhE_ b:BO_ { n b })
-	-- 	r:rels? s:sumti _:LUhU_?
+	/ {- !_:tag !_:selbri -}
+		ln:(l:LAhE_ { Left l } / n:NAhE_ b:BO_ { Right (n, b) })
+		r:rels? s:sumti lu:LUhU_?	{ either
+							(\l -> LAhE l
+								(fromMaybe NR r)
+								s
+								(fromMaybe NT lu))
+							(\(n, b) -> NAhEBO n b
+								(fromMaybe NR r)
+								s
+								(fromMaybe NT lu))
+							ln }
  ) r:rels?						{ maybe s (Rel s) r }
 
 -- 4. Mex
@@ -151,11 +172,15 @@ FAhO_ :: Terminator = pr:pre f:FAhO ps:post		{ Term pr f ps }
 
 GOI_ :: ([String], String, Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
 
+BO_ :: BO = pr:pre b:BO ps:post				{ BO pr b ps }
+
 BOI_ :: Terminator = pr:pre b:BOI ps:post		{ Term pr b ps }
 
 BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
 
 KOhA_ :: Text = pr:pre k:KOhA ps:post			{ KOhA pr k ps }
+
+LAhE_ :: Initiator = pr:pre l:LAhE ps:post		{ Init pr l ps }
 
 LI_ :: Initiator = pr:pre l:LI ps:post			{ Init pr l ps }
 
@@ -164,6 +189,10 @@ LIhU_ :: Terminator = pr:pre l:LIhU ps:post		{ Term pr l ps }
 LOhO_ :: Terminator = pr:pre l:LOhO ps:post		{ Term pr l ps }
 
 LU_ :: Initiator = pr:pre l:LU ps:post			{ Init pr l ps }
+
+LUhU_ :: Terminator = pr:pre l:LUhU ps:post		{ Term pr l ps }
+
+NAhE_ :: NAhE = pr:pre n:NAhE ps:post			{ NAhE pr n ps }
 
 UI_ :: Free = pr:pre u:UI ps:post			{ UI pr u ps }
 
