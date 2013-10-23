@@ -35,6 +35,7 @@ maybeCons mx xs = maybe xs (: xs) mx
 data Text
 	= Rel Text Relative
 	| KOhA [String] String Free
+	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| Clause [String] Word Free
 	| Lergum [Lerfu] Terminator
@@ -43,6 +44,10 @@ data Text
 data Relative
 	= GOIKOhA [String] String Free Text
 	| NR
+	deriving Show
+
+data Mex
+	= Stub String
 	deriving Show
 
 data Lerfu
@@ -96,8 +101,8 @@ paragraphs :: Text = s:bare_sumti { s }
 
 bare_sumti :: Text = s:
 	-- ( d:description
-	-- / _:LI_ m:mex _:LOhO_?
-	( z:ZO_word_				{ z }
+	( li:LI_ m:mex lo:LOhO_?		{ LI li m $ fromMaybe NT lo }
+	/ z:ZO_word_				{ z }
 	/ lu:LU_ p:paragraphs li:LIhU_?		{ LU lu p $ fromMaybe NT li }
 	/ l:LOhU_words_LEhU_			{ l }
 	/ z:ZOI_anything_			{ z }
@@ -109,6 +114,9 @@ bare_sumti :: Text = s:
  ) r:rels?						{ maybe s (Rel s) r }
 
 -- 4. Mex
+
+-- stub
+mex :: Mex = p:PA { Stub p }
 
 lerfu :: Lerfu
 	= b:BY_						{ b }
@@ -149,7 +157,11 @@ BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
 
 KOhA_ :: Text = pr:pre k:KOhA ps:post			{ KOhA pr k ps }
 
+LI_ :: Initiator = pr:pre l:LI ps:post			{ Init pr l ps }
+
 LIhU_ :: Terminator = pr:pre l:LIhU ps:post		{ Term pr l ps }
+
+LOhO_ :: Terminator = pr:pre l:LOhO ps:post		{ Term pr l ps }
 
 LU_ :: Initiator = pr:pre l:LU ps:post			{ Init pr l ps }
 
@@ -671,6 +683,9 @@ LI :: String = _:Y* &_:cmavo r:(l:l i:i { [l, i] }) &_:post_cmavo
 							{ r }
 
 LIhU :: String = _:Y* &_:cmavo r:(l:l i:i h:h u:u { [l, i, h, u] }) &_:post_cmavo
+							{ r }
+
+LOhO :: String = _:Y* &_:cmavo r:(l:l o:o h:h o:o { [l, o, h, o] }) &_:post_cmavo
 							{ r }
 
 LOhU :: String = _:Y* &_:cmavo r:(l:l o:o h:h u:u { [l, o, h, u] }) &_:post_cmavo
