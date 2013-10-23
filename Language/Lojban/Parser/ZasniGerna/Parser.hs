@@ -33,7 +33,8 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= ConBO Text [(Connective, BO, Text)]
+	= Con Text [(Connective, Text)]
+	| ConBO Text [(Connective, BO, Text)]
 	| Q Mex Text
 	| QS Mex Text Terminator Relative
 	| Gek Connective Text Connective Text
@@ -52,6 +53,7 @@ data Text
 data Relative
 	= GOIKOhA [String] String Free Text
 	| RelSumti Text
+	| VR VUhO Relative
 	| NR
 	deriving Show
 
@@ -88,6 +90,10 @@ data NAhE = NAhE [String] String Free
 
 data BO = BO [String] String Free
 	| TagBO Tag [String] String Free
+	deriving Show
+
+data VUhO
+	= VUhO [String] String Free
 	deriving Show
 
 data Free
@@ -127,7 +133,11 @@ paragraphs :: Text = s:sumti { s }
 -- 3. Term Sumti
 
 -- stub
-sumti :: Text = s:sumti_1				{ s }
+sumti :: Text = s1:sumti_1 js:(j:joik s2:sumti_1 { (j, s2) })*
+	vr:(v:VUhO_ r:rels { VR v r })?
+--	{ if null js then s1 else ConSumti s1 js $ fromMaybe NR vr}
+	{ if null js then s1 else
+		maybe (Con s1 js) (Rel $ Con s1 js) vr }
 
 sumti_1 :: Text = s1:sumti_2 jss:
 	( j:joik t:tag? (bw@(BO b bo f)):BO_ s2:sumti_2
@@ -256,6 +266,8 @@ LUhU_ :: Terminator = pr:pre l:LUhU ps:post		{ Term pr l ps }
 NAhE_ :: NAhE = pr:pre n:NAhE ps:post			{ NAhE pr n ps }
 
 UI_ :: Free = pr:pre u:UI ps:post			{ UI pr u ps }
+
+VUhO_ :: VUhO = pr:pre v:VUhO ps:post			{ VUhO pr v ps }
 
 --- 12. Pseudo SELMAhO ---
 
