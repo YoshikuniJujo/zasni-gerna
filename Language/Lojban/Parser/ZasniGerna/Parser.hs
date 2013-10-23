@@ -33,8 +33,10 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= Rel Text Relative
+	= LE Initiator Relative Mex Text Terminator
+	| Rel Text Relative
 	| KOhA [String] String Free
+	| BRIVLA String				-- stub
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
@@ -45,11 +47,13 @@ data Text
 
 data Relative
 	= GOIKOhA [String] String Free Text
+	| RelSumti Text
 	| NR
 	deriving Show
 
 data Mex
 	= Stub String
+	| NQ
 	deriving Show
 
 data Lerfu
@@ -111,8 +115,8 @@ paragraphs :: Text = s:bare_sumti { s }
 sumti :: Text = s:bare_sumti				{ s }
 
 bare_sumti :: Text = s:
-	-- ( d:description
-	( li:LI_ m:mex lo:LOhO_?		{ LI li m $ fromMaybe NT lo }
+	( d:description				{ d }
+	/ li:LI_ m:mex lo:LOhO_?		{ LI li m $ fromMaybe NT lo }
 	/ z:ZO_word_				{ z }
 	/ lu:LU_ p:paragraphs li:LIhU_?		{ LU lu p $ fromMaybe NT li }
 	/ l:LOhU_words_LEhU_			{ l }
@@ -134,7 +138,14 @@ bare_sumti :: Text = s:
 							ln }
  ) r:rels?						{ maybe s (Rel s) r }
 
+description :: Text = l:LE_ rs:(r:rels { r } / s:bare_sumti { RelSumti s })?
+	q:quantifier? ss:(s:selbri { s } / s:bare_sumti { s }) k:KU_?
+	{ LE l (fromMaybe NR rs) (fromMaybe NQ q) ss (fromMaybe NT k) }
+
 -- 4. Mex
+
+-- stub
+quantifier :: Mex = m:mex { m }
 
 -- stub
 mex :: Mex = p:PA { Stub p }
@@ -149,6 +160,9 @@ lerfu :: Lerfu
 rels :: Relative = (b, g, f):GOI_ k:KOhA_ { GOIKOhA b g f k }
 
 -- 6. Selbri Tanru unit
+
+-- stub
+selbri :: Text = b:BRIVLA	{ BRIVLA b }
 
 -- 7. Link args
 
@@ -180,7 +194,11 @@ BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
 
 KOhA_ :: Text = pr:pre k:KOhA ps:post			{ KOhA pr k ps }
 
+KU_ :: Terminator = pr:pre k:KU ps:post			{ Term pr k ps }
+
 LAhE_ :: Initiator = pr:pre l:LAhE ps:post		{ Init pr l ps }
+
+LE_ :: Initiator = pr:pre l:LE ps:post			{ Init pr l ps }
 
 LI_ :: Initiator = pr:pre l:LI ps:post			{ Init pr l ps }
 
