@@ -35,6 +35,7 @@ maybeCons mx xs = maybe xs (: xs) mx
 data Text
 	= Q Mex Text
 	| QS Mex Text Terminator Relative
+	| Gek Connective Text Connective Text
 	| LE Initiator Relative Mex Text Terminator
 	| Rel Text Relative
 	| KOhA [String] String Free
@@ -56,6 +57,11 @@ data Relative
 data Mex
 	= Stub String
 	| NQ
+	deriving Show
+
+data Connective
+	= GA [String] String Free
+	| GI [String] String Free
 	deriving Show
 
 data Lerfu
@@ -120,7 +126,7 @@ sumti_2 :: Text
 	= q:quantifier? s:bare_sumti			{ maybe s (flip Q s) q }
 	/ q:quantifier s:selbri k:KU_? r:rels?		{ QS q s (fromMaybe NT k)
 								(fromMaybe NR r) }
---	/ ge:gek s1:sumti gi:GI_ s2:sumti		{ Gek ge s1 gi s2 }
+	/ ge:gek s1:sumti gi:GI_ s2:sumti		{ Gek ge s1 gi s2 }
 
 bare_sumti :: Text = s:
 	( d:description				{ d }
@@ -176,6 +182,9 @@ selbri :: Text = b:BRIVLA	{ BRIVLA b }
 
 -- 8. Connective
 
+-- stub
+gek :: Connective = g:GA_	{ g }
+
 -- 9. Tense Modal
 
 -- 10. Free modifier
@@ -199,6 +208,10 @@ BO_ :: BO = pr:pre b:BO ps:post				{ BO pr b ps }
 BOI_ :: Terminator = pr:pre b:BOI ps:post		{ Term pr b ps }
 
 BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
+
+GA_ :: Connective = pr:pre g:GA ps:post			{ GA pr g ps }
+
+GI_ :: Connective = pr:pre g:GI ps:post			{ GI pr g ps }
 
 KOhA_ :: Text = pr:pre k:KOhA ps:post			{ KOhA pr k ps }
 
