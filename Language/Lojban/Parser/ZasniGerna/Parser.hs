@@ -338,19 +338,19 @@ BY :: String = _:Y* &_:cmavo r:
 	/ z:z y:y				{ [z, y] }
  ) &_:post_cmavo					{ r }
 
-CEI :: String = _:Y* &_:cmavo r:(c:c e:e i:i { [c, e, i] }) &_:cmavo
+CEI :: String = _:Y* &_:cmavo r:(c:c e:e i:i { [c, e, i] }) &_:post_cmavo
 							{ r }
 
-CO :: String = _:Y* &_:cmavo r:(c:c o:o { [c, o] }) &_:cmavo
+CO :: String = _:Y* &_:cmavo r:(c:c o:o { [c, o] }) &_:post_cmavo
 							{ r }
 
-CU :: String = _:Y* &_:cmavo r:(c:c u:u { [c, u] }) &_:cmavo
+CU :: String = _:Y* &_:cmavo r:(c:c u:u { [c, u] }) &_:post_cmavo
 							{ r }
 
-DOI :: String = _:Y* &_:cmavo r:(d:d o:o i:i { [d, o, i] }) &_:cmavo
+DOI :: String = _:Y* &_:cmavo r:(d:d o:o i:i { [d, o, i] }) &_:post_cmavo
 							{ r }
 
-DOhU :: String = _:Y* &_:cmavo r:(d:d o:o h:h u:u { [d, o, h, u] }) &_:cmavo
+DOhU :: String = _:Y* &_:cmavo r:(d:d o:o h:h u:u { [d, o, h, u] }) &_:post_cmavo
 							{ r }
 
 FA :: String = _:Y* &_:cmavo r:
@@ -380,10 +380,10 @@ GA :: String = _:Y* &_:cmavo r:
 	/ g:g u:u				{ [g, u] }
  ) &_:post_cmavo					{ r }
 
-GEhU :: String = _:Y* &_:cmavo r:(g:g e:e h:h u:u { [g, e, h, u] }) &_:cmavo
+GEhU :: String = _:Y* &_:cmavo r:(g:g e:e h:h u:u { [g, e, h, u] }) &_:post_cmavo
 							{ r }
 
-GI :: String = _:Y* &_:cmavo r:(g:g i:i { [g, i] }) &_:cmavo
+GI :: String = _:Y* &_:cmavo r:(g:g i:i { [g, i] }) &_:post_cmavo
 							{ r }
 
 GIhA :: String = _:Y* &_:cmavo r:
@@ -862,7 +862,7 @@ ZEI :: String = _:Y* &_:cmavo r:(z:z e:e i:i { [z, e, i] }) &_:post_cmavo
 ZIhE :: String = _:Y* &_:cmavo r:(z:z i:i h:h e:e { [z, i, h, e] }) &_:post_cmavo
 							{ r }
 
-ZO :: String = _:Y* &_:cmavo r:(z:z o:o { [z, o] }) &_:post_cmavo !_:i
+ZO :: String = _:Y* &_:cmavo r:(z:z o:o { [z, o] }) &_:post_cmavo
 							{ r }
 
 ZOI :: String = _:Y* &_:cmavo r:
@@ -902,7 +902,7 @@ CVCy_lujvo :: ()
 	= _:C _:V _:C _:y _:initial_rafsi*
 		_:(_:final_rafsi / _:gismu / _:fuhivla / _:type_3_fuhivla)
 
-post_cmavo :: () = _:space' / _:cmavo / _:brivla
+post_cmavo :: () = _:space' / !_:nucleus _:cmavo / _:brivla
 
 brivla :: String
 	= g:gismu					{ g }
