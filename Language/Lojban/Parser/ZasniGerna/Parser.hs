@@ -47,15 +47,26 @@ data Text
 	| BRIVLAF String Free
 	| BBRIVLA [String] String
 	| BBRIVLAF [String] String Free
+	| CMEVLA String
+	| CMEVLAF String Free
+	| BCMEVLA [String] String
+	| BCMEVLAF [String] String Free
 	| KOhA String
 	| KOhAF String Free
 	| BKOhA [String] String
 	| BKOhAF [String] String Free
+	| GOhA String
+	| GOhAF String Free
+	| BGOhA [String] String
+	| BGOhAF [String] String Free
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
 	| NAhEBO NAhE BO Relative Text Terminator
-	| Clause [String] Word (Maybe Free)
+	| Clause Word
+	| ClauseF Word Free
+	| BClause [String] Word
+	| BClauseF [String] Word Free
 	| Lergum [Lerfu] Terminator
 	deriving Show
 
@@ -256,6 +267,9 @@ selbri :: Text = t:tanru_unit_1				{ t }
 
 tanru_unit_1 :: Text
 	= b:BRIVLA_					{ b }
+	/ z:word_ZEI_word_				{ z }
+	/ c:CMEVLA_					{ c }
+	/ g:GOhA_					{ g }
 
 -- 7. Link args
 
@@ -288,11 +302,19 @@ BRIVLA_ :: Text = pr:pre b:BRIVLA ps:post		{ baheFree BRIVLA BRIVLAF
 								BBRIVLA BBRIVLAF
 								pr b ps }
 
+CMEVLA_ :: Text = pr:pre c:CMEVLA ps:post		{ baheFree CMEVLA CMEVLAF
+								BCMEVLA BCMEVLAF
+								pr c ps }
+
 BAI_ :: Tag = pr:pre b:BAI ps:post			{ baheFree BAI BAIF
 								BBAI BBAIF
 								pr b ps }
 
 GOI_ :: ([String], String, Maybe Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
+
+GOhA_ :: Text = pr:pre g:GOhA ps:post			{ baheFree GOhA GOhAF
+								BGOhA BGOhAF
+								pr g ps }
 
 BO_ :: BO = pr:pre b:BO ps:post				{ BO pr b ps }
 
@@ -370,16 +392,24 @@ VUhO_ :: VUhO = pr:pre v:VUhO ps:post			{ baheFree VUhO VUhOF
 
 --- 12. Pseudo SELMAhO ---
 
-word_ZEI_word_ :: Text = pr:pre z:word_ZEI_word ps:post	{ Clause pr z ps }
+word_ZEI_word_ :: Text = pr:pre z:word_ZEI_word ps:post	{ baheFree Clause ClauseF
+								BClause BClauseF
+								pr z ps }
 
 word_BU_ :: Lerfu = pr:pre b:word_BU ps:post		{ Lerfu pr b ps }
 
-ZO_word_ :: Text = pr:pre z:ZO_word ps:post		{ Clause pr z ps }
+ZO_word_ :: Text = pr:pre z:ZO_word ps:post		{ baheFree Clause ClauseF
+								BClause BClauseF
+								pr z ps }
 
 LOhU_words_LEhU_ :: Text = pr:pre l:LOhU_words_LEhU ps:post
-							{ Clause pr l ps }
+							{ baheFree Clause ClauseF
+								BClause BClauseF
+								pr l ps }
 
-ZOI_anything_ :: Text = pr:pre z:ZOI_anything ps:post	{ Clause pr z ps }
+ZOI_anything_ :: Text = pr:pre z:ZOI_anything ps:post	{ baheFree Clause ClauseF
+								BClause BClauseF
+								pr z ps }
 
 --- 13. Word Modifiers ---
 
