@@ -43,11 +43,14 @@ data Text
 	| Tag Tag Text
 	| TagKU Tag Terminator
 	| Rel Text Relative
+	| BRIVLA String
+	| BRIVLAF String Free
+	| BBRIVLA [String] String
+	| BBRIVLAF [String] String Free
 	| KOhA String
 	| KOhAF String Free
 	| BKOhA [String] String
 	| BKOhAF [String] String Free
-	| BRIVLA String				-- stub
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
@@ -169,7 +172,7 @@ text :: (Text, Terminator)
 							{ (p, fromMaybe NT f) }
 
 -- stub
-paragraphs :: Text = t:term { t }
+paragraphs :: Text = s:selbri { s }
 
 -- 2. Sentence Bridi
 
@@ -249,7 +252,10 @@ rels :: Relative = (b, g, f):GOI_ k:KOhA_ { GOIKOhA b g f k }
 -- 6. Selbri Tanru unit
 
 -- stub
-selbri :: Text = b:BRIVLA	{ BRIVLA b }
+selbri :: Text = t:tanru_unit_1				{ t }
+
+tanru_unit_1 :: Text
+	= b:BRIVLA_					{ b }
 
 -- 7. Link args
 
@@ -277,6 +283,10 @@ free :: Free
 -- ****** B. LOW LEVEL GRAMMAR ******
 
 --- 11. SELMAhO ---
+
+BRIVLA_ :: Text = pr:pre b:BRIVLA ps:post		{ baheFree BRIVLA BRIVLAF
+								BBRIVLA BBRIVLAF
+								pr b ps }
 
 BAI_ :: Tag = pr:pre b:BAI ps:post			{ baheFree BAI BAIF
 								BBAI BBAIF
