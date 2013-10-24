@@ -39,26 +39,43 @@ data Text
 	| QS Mex Text Terminator Relative
 	| Gek Connective Text Connective Text
 	| LE Initiator Relative Mex Text Terminator
+	| Terms [Text] Terminator
+	| Tag Tag Text
+	| TagKU Tag Terminator
 	| Rel Text Relative
-	| KOhA [String] String Free
+	| KOhA String
+	| KOhAF String Free
+	| BKOhA [String] String
+	| BKOhAF [String] String Free
 	| BRIVLA String				-- stub
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
 	| NAhEBO NAhE BO Relative Text Terminator
-	| Clause [String] Word Free
+	| Clause [String] Word (Maybe Free)
 	| Lergum [Lerfu] Terminator
 	deriving Show
 
 data Relative
-	= GOIKOhA [String] String Free Text
+	= GOIKOhA [String] String (Maybe Free) Text
 	| RelSumti Text
 	| VR VUhO Relative
 	| NR
 	deriving Show
 
 data Tag
-	= BAI [String] String Free
+	= BAI String
+	| BAIF String Free
+	| BBAI [String] String
+	| BBAIF [String] String Free
+	| FA String
+	| FAF String Free
+	| BFA [String] String
+	| BFAF [String] String Free
+	| NA String
+	| NAF String Free
+	| BNA [String] String
+	| BNAF [String] String Free
 	deriving Show
 
 data Mex
@@ -67,37 +84,49 @@ data Mex
 	deriving Show
 
 data Connective
-	= GA [String] String Free
-	| GI [String] String Free
-	| JOI [String] String Free
+	= GA [String] String (Maybe Free)
+	| GI [String] String (Maybe Free)
+	| JOI String
+	| JOIF String Free
+	| BJOI [String] String
+	| BJOIF [String] String Free
 	deriving Show
 
 data Lerfu
-	= Lerfu [String] Word Free
+	= Lerfu [String] Word (Maybe Free)
 	deriving Show
 
 data Initiator
-	= Init [String] String Free
+	= Init [String] String (Maybe Free)
 	deriving Show
 
 data Terminator
-	= Term [String] String Free
+	= Term String
+	| TermF String Free
+	| BTerm [String] String
+	| BTermF [String] String Free
 	| NT
 	deriving Show
 
-data NAhE = NAhE [String] String Free
+data NAhE = NAhE [String] String (Maybe Free)
 	deriving Show
 
-data BO = BO [String] String Free
-	| TagBO Tag [String] String Free
+data BO = BO [String] String (Maybe Free)
+	| TagBO Tag [String] String (Maybe Free)
 	deriving Show
 
 data VUhO
-	= VUhO [String] String Free
+	= VUhO String
+	| VUhOF String Free
+	| BVUhO [String] String
+	| BVUhOF [String] String Free
 	deriving Show
 
 data Free
-	= UI [String] String Free
+	= UI String
+	| UIF String Free
+	| BUI [String] String
+	| BUIF [String] String Free
 	| NF
 	deriving Show
 
@@ -113,6 +142,14 @@ data Word
 data ZEI = ZEI String deriving Show
 data BU = BU deriving Show
 
+baheFree ::
+	(a -> c) -> (a -> f -> c) -> ([b] -> a -> c) -> ([b] -> a -> f -> c) ->
+	[b] -> a -> Maybe f -> c
+baheFree a _ _ _ [] x Nothing = a x
+baheFree _ af _ _ [] x (Just f) = af x f
+baheFree _ _ ba _ b x Nothing = ba b x
+baheFree _ _ _ baf b x (Just f) = baf b x f
+
 [papillon|
 
 prefix: "gerna_"
@@ -126,16 +163,24 @@ text :: (Text, Terminator)
 							{ (p, fromMaybe NT f) }
 
 -- stub
-paragraphs :: Text = s:sumti { s }
+paragraphs :: Text = t:term { t }
 
 -- 2. Sentence Bridi
 
 -- 3. Term Sumti
 
--- stub
+term :: Text
+	= f:FA_? s:sumti				{ maybe s (flip Tag s) f }
+	/ t:tag? s:sumti				{ maybe s (flip Tag s) t }
+	/ f:FA_ k:KU_?					{ TagKU f $ fromMaybe NT k }
+	/ t:tag k:KU_?					{ TagKU t $ fromMaybe NT k }
+	/ n:NA_ k:KU_?					{ TagKU n $ fromMaybe NT k }
+	/ ge:gek t1:term+ v:VAU_? gi:GI_ t2:term+ v:VAU_?
+		{ Gek ge (Terms t1 $ fromMaybe NT v)
+			gi (Terms t2 $ fromMaybe NT v) }
+
 sumti :: Text = s1:sumti_1 js:(j:joik s2:sumti_1 { (j, s2) })*
 	vr:(v:VUhO_ r:rels { VR v r })?
---	{ if null js then s1 else ConSumti s1 js $ fromMaybe NR vr}
 	{ if null js then s1 else
 		maybe (Con s1 js) (Rel $ Con s1 js) vr }
 
@@ -227,27 +272,43 @@ free :: Free
 
 --- 11. SELMAhO ---
 
-BAI_ :: Tag = pr:pre b:BAI ps:post			{ BAI pr b ps }
+BAI_ :: Tag = pr:pre b:BAI ps:post			{ baheFree BAI BAIF
+								BBAI BBAIF
+								pr b ps }
 
-FAhO_ :: Terminator = pr:pre f:FAhO ps:post		{ Term pr f ps }
-
-GOI_ :: ([String], String, Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
+GOI_ :: ([String], String, Maybe Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
 
 BO_ :: BO = pr:pre b:BO ps:post				{ BO pr b ps }
 
-BOI_ :: Terminator = pr:pre b:BOI ps:post		{ Term pr b ps }
+BOI_ :: Terminator = pr:pre b:BOI ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr b ps }
 
 BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
+
+FA_ :: Tag = pr:pre f:FA ps:post			{ baheFree FA FAF
+								BFA BFAF
+								pr f ps }
+
+FAhO_ :: Terminator = pr:pre f:FAhO ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr f ps }
 
 GA_ :: Connective = pr:pre g:GA ps:post			{ GA pr g ps }
 
 GI_ :: Connective = pr:pre g:GI ps:post			{ GI pr g ps }
 
-JOI_ :: Connective = pr:pre j:JOI ps:post		{ JOI pr j ps }
+JOI_ :: Connective = pr:pre j:JOI ps:post		{ baheFree JOI JOIF
+								BJOI BJOIF
+								pr j ps }
 
-KOhA_ :: Text = pr:pre k:KOhA ps:post			{ KOhA pr k ps }
+KOhA_ :: Text = pr:pre k:KOhA ps:post			{ baheFree KOhA KOhAF
+								BKOhA BKOhAF
+								pr k ps }
 
-KU_ :: Terminator = pr:pre k:KU ps:post			{ Term pr k ps }
+KU_ :: Terminator = pr:pre k:KU ps:post			{ baheFree Term TermF
+								BTerm BTermF
+								pr k ps }
 
 LAhE_ :: Initiator = pr:pre l:LAhE ps:post		{ Init pr l ps }
 
@@ -255,19 +316,37 @@ LE_ :: Initiator = pr:pre l:LE ps:post			{ Init pr l ps }
 
 LI_ :: Initiator = pr:pre l:LI ps:post			{ Init pr l ps }
 
-LIhU_ :: Terminator = pr:pre l:LIhU ps:post		{ Term pr l ps }
+LIhU_ :: Terminator = pr:pre l:LIhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr l ps }
 
-LOhO_ :: Terminator = pr:pre l:LOhO ps:post		{ Term pr l ps }
+LOhO_ :: Terminator = pr:pre l:LOhO ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr l ps }
 
 LU_ :: Initiator = pr:pre l:LU ps:post			{ Init pr l ps }
 
-LUhU_ :: Terminator = pr:pre l:LUhU ps:post		{ Term pr l ps }
+LUhU_ :: Terminator = pr:pre l:LUhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr l ps }
+
+NA_ :: Tag = pr:pre n:NA ps:post			{ baheFree NA NAF
+								BNA BNAF
+								pr n ps }
 
 NAhE_ :: NAhE = pr:pre n:NAhE ps:post			{ NAhE pr n ps }
 
-UI_ :: Free = pr:pre u:UI ps:post			{ UI pr u ps }
+UI_ :: Free = pr:pre u:UI ps:post			{ baheFree UI UIF
+								BUI BUIF
+								pr u ps }
 
-VUhO_ :: VUhO = pr:pre v:VUhO ps:post			{ VUhO pr v ps }
+VAU_ :: Terminator = pr:pre v:VAU ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr v ps }
+
+VUhO_ :: VUhO = pr:pre v:VUhO ps:post			{ baheFree VUhO VUhOF
+								BVUhO BVUhOF
+								pr v ps }
 
 --- 12. Pseudo SELMAhO ---
 
@@ -287,12 +366,12 @@ ZOI_anything_ :: Text = pr:pre z:ZOI_anything ps:post	{ Clause pr z ps }
 pre :: [String] = bs:(_:word_SI* b:BAhE { b })* _:word_SI*
 							{ bs }
 
-post :: Free = !_:BU_tail !_:ZEI_tail f:free?		{ fromMaybe NF f }
+post :: Maybe Free = !_:BU_tail !_:ZEI_tail f:free?	{ f }
 
 -- number_post :: () = !_:BU_tail !_:ZEI_tail (!_:PA_ _:free)?
 
-lerfu_post :: Free = !_:BU_tail !_:ZEI_tail fr:(!_:lerfu f:free { f })?
-							{ fromMaybe NF fr }
+lerfu_post :: Maybe Free = !_:BU_tail !_:ZEI_tail fr:(!_:lerfu f:free { f })?
+							{ fr }
 
 -- vocative_post :: () = !_:BU_tail !_:ZEI_tail (!_:vocative _:free)?
 
@@ -386,9 +465,9 @@ BAI :: String = _:Y* &_:cmavo r:
 	/ v:v i:i h:h a:a			{ [v, i, h, a] }
 	/ v:v i:i h:h u:u			{ [v, i, h, u] }
 	/ v:v i:i h:h e:e			{ [v, i, h, e] }
-	/ v:v i:i				{ [v, i] }
-	/ v:v a:a				{ [v, a] }
-	/ v:v u:u				{ [v, u] }
+	/ v:v i:i !_:h !_:nucleus		{ [v, i] }
+	/ v:v a:a !_:h !_:nucleus		{ [v, a] }
+	/ v:v u:u !_:h !_:nucleus		{ [v, u] }
 	/ d:d u:u h:h a:a			{ [d, u, h, a] }
 	/ b:b e:e h:h a:a			{ [b, e, h, a] }
 	/ n:n e:e h:h u:u			{ [n, e, h, u] }
@@ -425,13 +504,13 @@ BAI :: String = _:Y* &_:cmavo r:
 	/ b:b a:a h:h o:o			{ [b, a, h, o] }
 	/ d:d i:i h:h a:a			{ [d, i, h, a] }
 	/ z:z a:a h:h o:o			{ [z, a, h, o] }
-	/ z:z u:u				{ [z, u] }
-	/ z:z a:a				{ [z, a] }
-	/ z:z i:i				{ [z, i] }
-	/ b:b a:a				{ [b, a] }
-	/ p:p u:u				{ [p, u] }
-	/ c:c a:a				{ [c, a] }
-	/ k:k i:i				{ [k, i] }
+	/ z:z u:u !_:h !_:nucleus		{ [z, u] }
+	/ z:z a:a !_:h !_:nucleus		{ [z, a] }
+	/ z:z i:i !_:h !_:nucleus		{ [z, i] }
+	/ b:b a:a !_:h !_:nucleus		{ [b, a] }
+	/ p:p u:u !_:h !_:nucleus		{ [p, u] }
+	/ c:c a:a !_:h !_:nucleus		{ [c, a] }
+	/ k:k i:i !_:h !_:nucleus		{ [k, i] }
 	/ d:d u:u h:h o:o			{ [d, u, h, o] }
 	/ s:s i:i h:h u:u			{ [s, i, h, u] }
 	/ z:z a:a u:u				{ [z, a, u] }
