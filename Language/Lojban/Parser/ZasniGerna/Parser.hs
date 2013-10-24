@@ -59,6 +59,11 @@ data Text
 	| GOhAF String Free
 	| BGOhA [String] String
 	| BGOhAF [String] String Free
+	| MOI Mex Suffix
+	| MEMOI Text Suffix
+	| MESumti Initiator Text Terminator
+	| MEMex Initiator Mex Terminator
+	| MEJoik Initiator Connective Terminator
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
@@ -135,6 +140,13 @@ data BO = BO [String] String (Maybe Free)
 	| TagBO Tag [String] String (Maybe Free)
 	deriving Show
 
+data Suffix
+	= Suffix String
+	| SuffixF String Free
+	| BSuffix [String] String
+	| BSuffixF [String] String Free
+	deriving Show
+
 data VUhO
 	= VUhO String
 	| VUhOF String Free
@@ -170,6 +182,13 @@ baheFree _ af _ _ [] x (Just f) = af x f
 baheFree _ _ ba _ b x Nothing = ba b x
 baheFree _ _ _ baf b x (Just f) = baf b x f
 
+data Either3 a b c = E1 a | E2 b | E3 c deriving Show
+
+either3 :: Either3 a b c -> (a -> d) -> (b -> d) -> (c -> d) -> d
+either3 (E1 x) f _ _ = f x
+either3 (E2 y) _ f _ = f y
+either3 (E3 z) _ _ f = f z
+
 [papillon|
 
 prefix: "gerna_"
@@ -183,7 +202,7 @@ text :: (Text, Terminator)
 							{ (p, fromMaybe NT f) }
 
 -- stub
-paragraphs :: Text = s:selbri { s }
+paragraphs :: Text = s:term { s }
 
 -- 2. Sentence Bridi
 
@@ -201,8 +220,10 @@ term :: Text
 
 sumti :: Text = s1:sumti_1 js:(j:joik s2:sumti_1 { (j, s2) })*
 	vr:(v:VUhO_ r:rels { VR v r })?
-	{ if null js then s1 else
-		maybe (Con s1 js) (Rel $ Con s1 js) vr }
+--	{ if null js then s1 else
+--		maybe (Con s1 js) (Rel $ Con s1 js) vr }
+	{ if null js then s1 else let c = Con s1 js in
+		maybe c (Rel c) vr }
 
 sumti_1 :: Text = s1:sumti_2 jss:
 	( j:joik t:tag? (bw@(BO b bo f)):BO_ s2:sumti_2
@@ -270,6 +291,12 @@ tanru_unit_1 :: Text
 	/ z:word_ZEI_word_				{ z }
 	/ c:CMEVLA_					{ c }
 	/ g:GOhA_					{ g }
+	/ m:mex mo:MOI_					{ MOI m mo }
+	{-
+	/ me:ME_ smj:(s:sumti { E1 s } / m:mex { E2 m } / j:joik { E3 j })
+		mehu:MEhU_? moi:MOI_?
+		{ maybe id ither3 smj }
+		-}
 
 -- 7. Link args
 
@@ -371,6 +398,16 @@ LU_ :: Initiator = pr:pre l:LU ps:post			{ Init pr l ps }
 LUhU_ :: Terminator = pr:pre l:LUhU ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr l ps }
+
+ME_ :: Initiator = pr:pre m:ME ps:post			{ Init pr m ps }
+
+MEhU_ :: Terminator = pr:pre m:MEhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr m ps }
+
+MOI_ :: Suffix = pr:pre m:MOI ps:post			{ baheFree Suffix SuffixF
+								BSuffix BSuffixF
+								pr m ps }
 
 NA_ :: Tag = pr:pre n:NA ps:post			{ baheFree NA NAF
 								BNA BNAF
@@ -476,7 +513,7 @@ ZEI_tail :: ZEI = _:word_SI* _:ZEI w:any_word		{ ZEI w }
 ZO_word :: Word = _:ZO w:any_word			{ ZO w }
 
 LOhU_words_LEhU :: Word = _:LOhU ws:
-	(!_:LEhU w:any_word			{ w }
+	( !_:LEhU w:any_word			{ w }
  )* _:LEhU						{ LOhU ws }
 
 ZOI_anything :: Word = z:ZOI sep:any_word str:
