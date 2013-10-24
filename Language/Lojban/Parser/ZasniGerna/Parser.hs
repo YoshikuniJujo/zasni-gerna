@@ -84,8 +84,14 @@ data Mex
 	deriving Show
 
 data Connective
-	= GA [String] String (Maybe Free)
-	| GI [String] String (Maybe Free)
+	= GA String
+	| GAF String Free
+	| BGA [String] String
+	| BGAF [String] String Free
+	| GI String
+	| GIF String Free
+	| BGI [String] String
+	| BGIF [String] String Free
 	| JOI String
 	| JOIF String Free
 	| BJOI [String] String
@@ -294,9 +300,13 @@ FAhO_ :: Terminator = pr:pre f:FAhO ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr f ps }
 
-GA_ :: Connective = pr:pre g:GA ps:post			{ GA pr g ps }
+GA_ :: Connective = pr:pre g:GA ps:post			{ baheFree GA GAF
+								BGA BGAF
+								pr g ps }
 
-GI_ :: Connective = pr:pre g:GI ps:post			{ GI pr g ps }
+GI_ :: Connective = pr:pre g:GI ps:post			{ baheFree GI GIF
+								BGI BGIF
+								pr g ps }
 
 JOI_ :: Connective = pr:pre j:JOI ps:post		{ baheFree JOI JOIF
 								BJOI BJOIF
