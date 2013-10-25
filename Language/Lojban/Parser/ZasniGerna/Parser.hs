@@ -37,6 +37,7 @@ data Text
 	= BridiTail Text Text
 	| Con Text [(Connective, Text)]
 	| ConBO Text [(Connective, BO, Text)]
+	| Gihek Text [(Connective, Text, Text)]
 	| GihekBO Text [(Connective, BO, Text, Text)]
 	| TanruCO Text [(CO, Text)]
 	| Tanru [Text]
@@ -292,9 +293,11 @@ paragraphs :: Text = s:sentence { s }
 sentence :: Text = b:bridi_tail { b }
 
 -- stub
-bridi_tail :: Text = b:bridi_tail_1 { b }
+bridi_tail :: Text = b:bridi_tail_1 gb:
+	( g:gihek b:bridi_tail_1 t:term* v:VAU_?
+		{ (g, b, Terms t $ fromMaybe NT v) }
+ )*	{ if null gb then b else Gihek b gb }
 
--- stub
 bridi_tail_1 :: Text = b:bridi_tail_2 gb:
 	( g:gihek tg:tag? bo:BO_ b':bridi_tail_2 t:term* v:VAU_?
 		{ mkGihekBO g tg bo b' t v } )*
