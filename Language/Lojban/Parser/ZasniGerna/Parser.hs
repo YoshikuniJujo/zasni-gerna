@@ -67,6 +67,7 @@ data Text
 	| NU Initiator Text Terminator
 	| KE Initiator Text Terminator
 	| Prefix Prefix Text
+	| BE Text Linkargs
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
@@ -83,6 +84,10 @@ data Relative
 	| RelSumti Text
 	| VR VUhO Relative
 	| NR
+	deriving Show
+
+data Linkargs
+	= StubLinkargs Initiator Text
 	deriving Show
 
 data Tag
@@ -306,7 +311,10 @@ rels :: Relative = (b, g, f):GOI_ k:KOhA_ { GOIKOhA b g f k }
 -- 6. Selbri Tanru unit
 
 -- stub
-selbri :: Text = t:tanru_unit_1				{ t }
+selbri :: Text = t:tanru_unit				{ t }
+
+tanru_unit :: Text
+	= t:tanru_unit_1	l:linkargs?		{ maybe t (BE t) l }
 
 tanru_unit_1 :: Text
 	= b:BRIVLA_					{ b }
@@ -330,6 +338,10 @@ tanru_unit_1 :: Text
 	 ) t:tanru_unit_1				{ Prefix p t }
 
 -- 7. Link args
+
+-- stub
+linkargs :: Linkargs
+	= b:BE_ t:term				{ StubLinkargs b t }
 
 -- 8. Connective
 
@@ -366,6 +378,10 @@ CMEVLA_ :: Text = pr:pre c:CMEVLA ps:post		{ baheFree CMEVLA CMEVLAF
 
 BAI_ :: Tag = pr:pre b:BAI ps:post			{ baheFree BAI BAIF
 								BBAI BBAIF
+								pr b ps }
+
+BE_ :: Initiator = pr:pre b:BE ps:post			{ baheFree Init InitF
+								BInit BInitF
 								pr b ps }
 
 GOI_ :: ([String], String, Maybe Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
