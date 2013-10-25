@@ -37,6 +37,7 @@ data Text
 	= BridiTail Text Text
 	| Con Text [(Connective, Text)]
 	| ConBO Text [(Connective, BO, Text)]
+	| GihekBO Text [(Connective, BO, Text, Text)]
 	| TanruCO Text [(CO, Text)]
 	| Tanru [Text]
 	| TanruBO Text [(BO, Text)]
@@ -130,6 +131,10 @@ data Connective
 	| JOIF String Free
 	| BJOI [String] String
 	| BJOIF [String] String Free
+	| GIhA String
+	| GIhAF String Free
+	| BGIhA [String] String
+	| BGIhAF [String] String Free
 	deriving Show
 
 data Lerfu
@@ -257,6 +262,15 @@ mkBridiTail tag ge b1 gi b2 [] Nothing = Tags tag $ Gek ge b1 gi b2
 mkBridiTail tag ge b1 gi b2 terms vau = Tags tag $
 	BridiTail (Gek ge b1 gi b2) $ Terms terms $ fromMaybe NT vau
 
+mkGihekBO :: Connective -> Maybe Tag -> BO -> Text -> [Text] -> Maybe Terminator ->
+	(Connective, BO, Text, Text)
+mkGihekBO g tag bo b terms v =
+	(g, maybe bo (flip TagBO bo) tag, b, Terms terms $ fromMaybe NT v)
+
+--	( g:gihek t:tag? bo:BO_ b':bridi_tail_2 t:term* v:VAU_?
+--		{mkGihekBO g t bo b' t v} )*
+--	| GihekBO Text [(Connective, BO, Text, Text)]
+
 [papillon|
 
 prefix: "gerna_"
@@ -278,7 +292,13 @@ paragraphs :: Text = s:sentence { s }
 sentence :: Text = b:bridi_tail { b }
 
 -- stub
-bridi_tail :: Text = b:bridi_tail_2 { b }
+bridi_tail :: Text = b:bridi_tail_1 { b }
+
+-- stub
+bridi_tail_1 :: Text = b:bridi_tail_2 gb:
+	( g:gihek tg:tag? bo:BO_ b':bridi_tail_2 t:term* v:VAU_?
+		{ mkGihekBO g tg bo b' t v } )*
+	{ if null gb then b else GihekBO b gb }
 
 bridi_tail_2 :: Text
 	= s:selbri t:term* v:VAU_?
@@ -417,6 +437,9 @@ linkargs :: Linkargs
 joik :: Connective = j:JOI_	{ j }
 
 -- stub
+gihek :: Connective = g:GIhA_	{ g }
+
+-- stub
 gek :: Connective = g:GA_	{ g }
 
 -- 9. Tense Modal
@@ -490,6 +513,10 @@ GA_ :: Connective = pr:pre g:GA ps:post			{ baheFree GA GAF
 
 GI_ :: Connective = pr:pre g:GI ps:post			{ baheFree GI GIF
 								BGI BGIF
+								pr g ps }
+
+GIhA_ :: Connective = pr:pre g:GIhA ps:post		{ baheFree GIhA GIhAF
+								BGIhA BGIhAF
 								pr g ps }
 
 JAI_ :: Prefix = pr:pre j:JAI ps:post			{ baheFree JAI JAIF
