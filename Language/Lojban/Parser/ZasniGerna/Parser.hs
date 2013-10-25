@@ -33,7 +33,9 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= Con Text [(Connective, Text)]
+--	= BridiTail Text [Text] Terminator
+	= BridiTail Text Text
+	| Con Text [(Connective, Text)]
 	| ConBO Text [(Connective, BO, Text)]
 	| TanruCO Text [(CO, Text)]
 	| Tanru [Text]
@@ -44,6 +46,7 @@ data Text
 	| LE Initiator Relative Mex Text Terminator
 	| Terms [Text] Terminator
 	| Tag Tag Text
+	| Tags [Tag] Text
 	| TagKU Tag Terminator
 	| Rel Text Relative
 	| CEI Text Initiator Text
@@ -245,6 +248,15 @@ mkSelbri ss cs rel cei = let
 	b'' = maybe b' (Rel b) rel in
 	maybe b'' (uncurry $ CEI b'') cei
 
+mkBridiTail :: [Tag] -> Connective -> Text -> Connective -> Text -> [Text] ->
+	Maybe Terminator -> Text
+mkBridiTail [] ge b1 gi b2 [] Nothing = Gek ge b1 gi b2
+mkBridiTail [] ge b1 gi b2 terms vau =
+	BridiTail (Gek ge b1 gi b2) $ Terms terms $ fromMaybe NT vau
+mkBridiTail tag ge b1 gi b2 [] Nothing = Tags tag $ Gek ge b1 gi b2
+mkBridiTail tag ge b1 gi b2 terms vau = Tags tag $
+	BridiTail (Gek ge b1 gi b2) $ Terms terms $ fromMaybe NT vau
+
 [papillon|
 
 prefix: "gerna_"
@@ -263,7 +275,18 @@ paragraphs :: Text = s:sentence { s }
 -- 2. Sentence Bridi
 
 -- stub
-sentence :: Text = s:selbri { s }
+sentence :: Text = b:bridi_tail { b }
+
+-- stub
+bridi_tail :: Text = b:bridi_tail_2 { b }
+
+bridi_tail_2 :: Text
+	= s:selbri t:term* v:VAU_?
+		{ if null t && isNothing v then s else
+			BridiTail s $ Terms t $ fromMaybe NT v }
+	/ tn:(t:tag { t } / n:NA_ { n })* ge:gek b1:bridi_tail gi:GI_
+		b2:bridi_tail t:term* v:VAU_?
+		{ mkBridiTail tn ge b1 gi b2 t v }
 
 -- 3. Term Sumti
 
