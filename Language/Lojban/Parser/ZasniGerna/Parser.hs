@@ -64,6 +64,8 @@ data Text
 	| MESumti Initiator Text Terminator
 	| MEMex Initiator Mex Terminator
 	| MEJoik Initiator Connective Terminator
+	| NU Initiator Text Terminator
+	| KE Initiator Text Terminator
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
@@ -122,7 +124,10 @@ data Lerfu
 	deriving Show
 
 data Initiator
-	= Init [String] String (Maybe Free)
+	= Init String
+	| InitF String Free
+	| BInit [String] String
+	| BInitF [String] String Free
 	deriving Show
 
 data Terminator
@@ -202,9 +207,12 @@ text :: (Text, Terminator)
 							{ (p, fromMaybe NT f) }
 
 -- stub
-paragraphs :: Text = s:selbri { s }
+paragraphs :: Text = s:sentence { s }
 
 -- 2. Sentence Bridi
+
+-- stub
+sentence :: Text = s:selbri { s }
 
 -- 3. Term Sumti
 
@@ -299,6 +307,8 @@ tanru_unit_1 :: Text
 			(\m -> MEMex me m $ fromMaybe NT mehu)
 			(\j -> MEJoik me j $ fromMaybe NT mehu) in
 			maybe b (MEMOI b) moi }
+	/ n:NU_ s:sentence k:KEI_?			{ NU n s $ fromMaybe NT k }
+	/ ke:KE_ s:selbri k:KEhE_?			{ KE ke s $ fromMaybe NT k }
 
 -- 7. Link args
 
@@ -373,6 +383,18 @@ JOI_ :: Connective = pr:pre j:JOI ps:post		{ baheFree JOI JOIF
 								BJOI BJOIF
 								pr j ps }
 
+KE_ :: Initiator = pr:pre k:KE ps:post			{ baheFree Init InitF
+								BInit BInitF
+								pr k ps }
+
+KEhE_ :: Terminator = pr:pre k:KEhE ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr k ps }
+
+KEI_ :: Terminator = pr:pre k:KEI ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr k ps }
+
 KOhA_ :: Text = pr:pre k:KOhA ps:post			{ baheFree KOhA KOhAF
 								BKOhA BKOhAF
 								pr k ps }
@@ -381,11 +403,17 @@ KU_ :: Terminator = pr:pre k:KU ps:post			{ baheFree Term TermF
 								BTerm BTermF
 								pr k ps }
 
-LAhE_ :: Initiator = pr:pre l:LAhE ps:post		{ Init pr l ps }
+LAhE_ :: Initiator = pr:pre l:LAhE ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr l ps }
 
-LE_ :: Initiator = pr:pre l:LE ps:post			{ Init pr l ps }
+LE_ :: Initiator = pr:pre l:LE ps:post			{ baheFree Init InitF
+								BInit BInitF
+								pr l ps }
 
-LI_ :: Initiator = pr:pre l:LI ps:post			{ Init pr l ps }
+LI_ :: Initiator = pr:pre l:LI ps:post			{ baheFree Init InitF
+								BInit BInitF
+								pr l ps }
 
 LIhU_ :: Terminator = pr:pre l:LIhU ps:post		{ baheFree Term TermF
 								BTerm BTermF
@@ -395,13 +423,17 @@ LOhO_ :: Terminator = pr:pre l:LOhO ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr l ps }
 
-LU_ :: Initiator = pr:pre l:LU ps:post			{ Init pr l ps }
+LU_ :: Initiator = pr:pre l:LU ps:post			{ baheFree Init InitF
+								BInit BInitF
+								pr l ps }
 
 LUhU_ :: Terminator = pr:pre l:LUhU ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr l ps }
 
-ME_ :: Initiator = pr:pre m:ME ps:post			{ Init pr m ps }
+ME_ :: Initiator = pr:pre m:ME ps:post			{ baheFree Init InitF
+								BInit BInitF
+								pr m ps }
 
 MEhU_ :: Terminator = pr:pre m:MEhU ps:post		{ baheFree Term TermF
 								BTerm BTermF
@@ -416,6 +448,10 @@ NA_ :: Tag = pr:pre n:NA ps:post			{ baheFree NA NAF
 								pr n ps }
 
 NAhE_ :: NAhE = pr:pre n:NAhE ps:post			{ NAhE pr n ps }
+
+NU_ :: Initiator = pr:pre n:NU ps:post			{ baheFree Init InitF
+								BInit BInitF
+								pr n ps }
 
 UI_ :: Free = pr:pre u:UI ps:post			{ baheFree UI UIF
 								BUI BUIF
