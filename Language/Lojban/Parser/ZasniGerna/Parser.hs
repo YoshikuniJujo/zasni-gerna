@@ -33,7 +33,6 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
---	= BridiTail Text [Text] Terminator
 	= BridiTail Text Text
 	| Con Text [(Connective, Text)]
 	| ConBO Text [(Connective, BO, Text)]
@@ -47,6 +46,7 @@ data Text
 	| Gek Connective Text Connective Text
 	| LE Initiator Relative Mex Text Terminator
 	| Terms [Text] Terminator
+	| Bridi Text Text
 	| Tag Tag Text
 	| Tags [Tag] Text
 	| TagKU Tag Terminator
@@ -290,9 +290,14 @@ paragraphs :: Text = s:sentence { s }
 -- 2. Sentence Bridi
 
 -- stub
-sentence :: Text = b:bridi_tail { b }
+sentence :: Text
+	= tc:(t:term+ c:CU_? { Terms t $ fromMaybe NT c })?  b:bridi_tail
+		{ maybe b (flip Bridi b) tc }
+--	/ te:TUhE_ p:paragraphs tu:TUhU_
+--	/ ge:gek s:sentence gi:GI_ s:sentence
+--	/ t:term+ z:ZOhU_ s:sentence
+--	/ t:term* v:VAU_?
 
--- stub
 bridi_tail :: Text = b:bridi_tail_1 gb:
 	( g:gihek b:bridi_tail_1 t:term* v:VAU_?
 		{ (g, b, Terms t $ fromMaybe NT v) }
@@ -478,20 +483,6 @@ BE_ :: Initiator = pr:pre b:BE ps:post			{ baheFree Init InitF
 								BInit BInitF
 								pr b ps }
 
-CEI_ :: Initiator = pr:pre c:CEI ps:post		{ baheFree Init InitF
-								BInit BInitF
-								pr c ps }
-
-CO_ :: CO = pr:pre c:CO ps:post				{ baheFree CO COF
-								BCO BCOF
-								pr c ps }
-
-GOI_ :: ([String], String, Maybe Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
-
-GOhA_ :: Text = pr:pre g:GOhA ps:post			{ baheFree GOhA GOhAF
-								BGOhA BGOhAF
-								pr g ps }
-
 BO_ :: BO = pr:pre b:BO ps:post				{ baheFree BO BOF
 								BBO BBOF
 								pr b ps }
@@ -501,6 +492,24 @@ BOI_ :: Terminator = pr:pre b:BOI ps:post		{ baheFree Term TermF
 								pr b ps }
 
 BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
+
+CEI_ :: Initiator = pr:pre c:CEI ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr c ps }
+
+CO_ :: CO = pr:pre c:CO ps:post				{ baheFree CO COF
+								BCO BCOF
+								pr c ps }
+
+CU_ :: Terminator = pr:pre c:CU ps:post			{ baheFree Term TermF
+								BTerm BTermF
+								pr c ps }
+
+GOI_ :: ([String], String, Maybe Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
+
+GOhA_ :: Text = pr:pre g:GOhA ps:post			{ baheFree GOhA GOhAF
+								BGOhA BGOhAF
+								pr g ps }
 
 FA_ :: Tag = pr:pre f:FA ps:post			{ baheFree FA FAF
 								BFA BFAF
