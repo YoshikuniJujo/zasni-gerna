@@ -202,7 +202,7 @@ text :: (Text, Terminator)
 							{ (p, fromMaybe NT f) }
 
 -- stub
-paragraphs :: Text = s:term { s }
+paragraphs :: Text = s:selbri { s }
 
 -- 2. Sentence Bridi
 
@@ -292,11 +292,13 @@ tanru_unit_1 :: Text
 	/ c:CMEVLA_					{ c }
 	/ g:GOhA_					{ g }
 	/ m:mex mo:MOI_					{ MOI m mo }
-	{-
 	/ me:ME_ smj:(s:sumti { E1 s } / m:mex { E2 m } / j:joik { E3 j })
 		mehu:MEhU_? moi:MOI_?
-		{ maybe id ither3 smj }
-		-}
+		{ let b = either3 smj
+			(\s -> MESumti me s $ fromMaybe NT mehu)
+			(\m -> MEMex me m $ fromMaybe NT mehu)
+			(\j -> MEJoik me j $ fromMaybe NT mehu) in
+			maybe b (MEMOI b) moi }
 
 -- 7. Link args
 
