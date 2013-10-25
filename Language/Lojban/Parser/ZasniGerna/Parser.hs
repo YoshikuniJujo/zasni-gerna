@@ -66,10 +66,11 @@ data Text
 	| MEJoik Initiator Connective Terminator
 	| NU Initiator Text Terminator
 	| KE Initiator Text Terminator
+	| Prefix Prefix Text
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
-	| NAhEBO NAhE BO Relative Text Terminator
+	| NAhEBO Prefix BO Relative Text Terminator
 	| Clause Word
 	| ClauseF Word Free
 	| BClause [String] Word
@@ -138,7 +139,20 @@ data Terminator
 	| NT
 	deriving Show
 
-data NAhE = NAhE [String] String (Maybe Free)
+data Prefix
+	= NAhE String
+	| NAhEF String Free
+	| BNAhE [String] String
+	| BNAhEF[String] String Free
+	| SE String
+	| SEF String Free
+	| BSE [String] String
+	| BSEF [String] String Free
+	| JAI String
+	| JAIF String Free
+	| BJAI [String] String
+	| BJAIF [String] String Free
+	| JAITag Prefix Tag
 	deriving Show
 
 data BO = BO [String] String (Maybe Free)
@@ -309,6 +323,11 @@ tanru_unit_1 :: Text
 			maybe b (MEMOI b) moi }
 	/ n:NU_ s:sentence k:KEI_?			{ NU n s $ fromMaybe NT k }
 	/ ke:KE_ s:selbri k:KEhE_?			{ KE ke s $ fromMaybe NT k }
+	/ p:
+		( s:SE_				{ s }
+		/ j:JAI_ t:tag?			{ maybe j (JAITag j) t }
+		/ n:NAhE_			{ n }
+	 ) t:tanru_unit_1				{ Prefix p t }
 
 -- 7. Link args
 
@@ -379,6 +398,10 @@ GI_ :: Connective = pr:pre g:GI ps:post			{ baheFree GI GIF
 								BGI BGIF
 								pr g ps }
 
+JAI_ :: Prefix = pr:pre j:JAI ps:post			{ baheFree JAI JAIF
+								BJAI BJAIF
+								pr j ps }
+
 JOI_ :: Connective = pr:pre j:JOI ps:post		{ baheFree JOI JOIF
 								BJOI BJOIF
 								pr j ps }
@@ -447,11 +470,17 @@ NA_ :: Tag = pr:pre n:NA ps:post			{ baheFree NA NAF
 								BNA BNAF
 								pr n ps }
 
-NAhE_ :: NAhE = pr:pre n:NAhE ps:post			{ NAhE pr n ps }
+NAhE_ :: Prefix = pr:pre n:NAhE ps:post			{ baheFree NAhE NAhEF
+								BNAhE BNAhEF
+								pr n ps }
 
 NU_ :: Initiator = pr:pre n:NU ps:post			{ baheFree Init InitF
 								BInit BInitF
 								pr n ps }
+
+SE_ :: Prefix = pr:pre s:SE ps:post			{ baheFree SE SEF
+								BSE BSEF
+								pr s ps }
 
 UI_ :: Free = pr:pre u:UI ps:post			{ baheFree UI UIF
 								BUI BUIF
