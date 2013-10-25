@@ -35,6 +35,8 @@ maybeCons mx xs = maybe xs (: xs) mx
 data Text
 	= Con Text [(Connective, Text)]
 	| ConBO Text [(Connective, BO, Text)]
+	| TanruCO Text [(CO, Text)]
+	| Tanru [Text]
 	| TanruBO Text [(BO, Text)]
 	| Q Mex Text
 	| QS Mex Text Terminator Relative
@@ -44,6 +46,7 @@ data Text
 	| Tag Tag Text
 	| TagKU Tag Terminator
 	| Rel Text Relative
+	| CEI Text Initiator Text
 	| BRIVLA String
 	| BRIVLAF String Free
 	| BBRIVLA [String] String
@@ -168,6 +171,12 @@ data BO = BO String
 	| TagBO Tag BO
 	deriving Show
 
+data CO	= CO String
+	| COF String Free
+	| BCO [String] String
+	| BCOF [String] String Free
+	deriving Show
+
 data Suffix
 	= Suffix String
 	| SuffixF String Free
@@ -216,6 +225,25 @@ either3 :: Either3 a b c -> (a -> d) -> (b -> d) -> (c -> d) -> d
 either3 (E1 x) f _ _ = f x
 either3 (E2 y) _ f _ = f y
 either3 (E3 z) _ _ f = f z
+
+mkSelbri :: [Text] -> [(CO, Text)] -> Maybe Relative ->
+	Maybe (Initiator, Text) -> Text
+mkSelbri [s] [] rel cei = let
+	b = maybe s (Rel s) rel in
+	maybe b (uncurry $ CEI b) cei
+mkSelbri [s] cs rel cei = let
+	b = TanruCO s cs
+	b' = maybe b (Rel b) rel in
+	maybe b' (uncurry $ CEI b') cei
+mkSelbri ss [] rel cei = let
+	b = Tanru ss
+	b' = maybe b (Rel b) rel in
+	maybe b' (uncurry $ CEI b') cei
+mkSelbri ss cs rel cei = let
+	b = Tanru ss
+	b' = TanruCO b cs
+	b'' = maybe b' (Rel b) rel in
+	maybe b'' (uncurry $ CEI b'') cei
 
 [papillon|
 
@@ -313,7 +341,14 @@ rels :: Relative = (b, g, f):GOI_ k:KOhA_ { GOIKOhA b g f k }
 -- 6. Selbri Tanru unit
 
 -- stub
-selbri :: Text = s:selbri_2				{ s }
+selbri :: Text
+	= sl:selbri_1+ cs:(c:CO_ s:selbri_1 { (c, s) })* r:rels?
+		cei:(c:CEI_ s:selbri { (c, s) })?	{ mkSelbri sl cs r cei }
+	/ t:tag s:selbri				{ Tag t s }
+	/ n:NA_ s:selbri				{ Tag n s }
+
+selbri_1 :: Text = s:selbri_2 js:(j:joik s2:selbri_2 { (j, s2) })*
+	{ if null js then s else Con s js }
 
 selbri_2 :: Text = s:selbri_3 jbs:
 	( j:joik t:tag? b:BO_ s:selbri_3
@@ -393,6 +428,14 @@ BAI_ :: Tag = pr:pre b:BAI ps:post			{ baheFree BAI BAIF
 BE_ :: Initiator = pr:pre b:BE ps:post			{ baheFree Init InitF
 								BInit BInitF
 								pr b ps }
+
+CEI_ :: Initiator = pr:pre c:CEI ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr c ps }
+
+CO_ :: CO = pr:pre c:CO ps:post				{ baheFree CO COF
+								BCO BCOF
+								pr c ps }
 
 GOI_ :: ([String], String, Maybe Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
 
