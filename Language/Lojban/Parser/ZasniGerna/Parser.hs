@@ -35,6 +35,7 @@ maybeCons mx xs = maybe xs (: xs) mx
 data Text
 	= Con Text [(Connective, Text)]
 	| ConBO Text [(Connective, BO, Text)]
+	| TanruBO Text [(BO, Text)]
 	| Q Mex Text
 	| QS Mex Text Terminator Relative
 	| Gek Connective Text Connective Text
@@ -160,8 +161,11 @@ data Prefix
 	| JAITag Prefix Tag
 	deriving Show
 
-data BO = BO [String] String (Maybe Free)
-	| TagBO Tag [String] String (Maybe Free)
+data BO = BO String
+	| BOF String Free
+	| BBO [String] String
+	| BBOF [String] String Free
+	| TagBO Tag BO
 	deriving Show
 
 data Suffix
@@ -247,14 +251,12 @@ term :: Text
 
 sumti :: Text = s1:sumti_1 js:(j:joik s2:sumti_1 { (j, s2) })*
 	vr:(v:VUhO_ r:rels { VR v r })?
---	{ if null js then s1 else
---		maybe (Con s1 js) (Rel $ Con s1 js) vr }
 	{ if null js then s1 else let c = Con s1 js in
 		maybe c (Rel c) vr }
 
 sumti_1 :: Text = s1:sumti_2 jss:
-	( j:joik t:tag? (bw@(BO b bo f)):BO_ s2:sumti_2
-		{ (j, maybe bw (\t -> TagBO t b bo f) t, s2) }
+	( j:joik t:tag? bw:BO_ s2:sumti_2
+		{ (j, maybe bw (\t -> TagBO t bw) t, s2) }
  )*	{ if null jss then s1 else ConBO s1 jss }
 
 sumti_2 :: Text
@@ -311,7 +313,15 @@ rels :: Relative = (b, g, f):GOI_ k:KOhA_ { GOIKOhA b g f k }
 -- 6. Selbri Tanru unit
 
 -- stub
-selbri :: Text = t:tanru_unit				{ t }
+selbri :: Text = s:selbri_2				{ s }
+
+selbri_2 :: Text = s:selbri_3 jbs:
+	( j:joik t:tag? b:BO_ s:selbri_3
+		{ (j, maybe b (\t -> TagBO t b) t, s) }
+ )*	{ if null jbs then s else ConBO s jbs }
+
+selbri_3 :: Text = t:tanru_unit bts:(b:BO_ t:tanru_unit { (b, t) })*
+	{ if null bts then t else TanruBO t bts }
 
 tanru_unit :: Text
 	= t:tanru_unit_1	l:linkargs?		{ maybe t (BE t) l }
@@ -390,7 +400,9 @@ GOhA_ :: Text = pr:pre g:GOhA ps:post			{ baheFree GOhA GOhAF
 								BGOhA BGOhAF
 								pr g ps }
 
-BO_ :: BO = pr:pre b:BO ps:post				{ BO pr b ps }
+BO_ :: BO = pr:pre b:BO ps:post				{ baheFree BO BOF
+								BBO BBOF
+								pr b ps }
 
 BOI_ :: Terminator = pr:pre b:BOI ps:post		{ baheFree Term TermF
 								BTerm BTermF
