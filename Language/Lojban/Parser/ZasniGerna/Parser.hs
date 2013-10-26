@@ -7,7 +7,7 @@ module Language.Lojban.Parser.ZasniGerna.Parser (
 import Text.Papillon
 import Data.Maybe
 
-testParse :: String -> Either String (Text, Terminator)
+testParse :: String -> Either String (Free, Text, Terminator)
 testParse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
@@ -33,7 +33,8 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= I Text [(Separator, Text)]
+	= NIhO Text [(Separator, Text)]
+	| I Text [(Separator, Text)]
 	| ICon Text [(Separator, Connective, Text)]
 	| IBO Text [(Separator, Connective, BO, Text)]
 	| BridiTail Text Text
@@ -301,18 +302,23 @@ prefix: "gerna_"
 
 -- 1. Text Paragraphs Statement
 
-text :: (Text, Terminator)
+text :: (Free, Text, Terminator)
 	= _:words_SU* _:SI_tail* ps:post p:paragraphs f:FAhO_?
-							{ (p, fromMaybe NT f) }
+	{ (fromMaybe NF ps, p, fromMaybe NT f) }
 
 -- stub
-paragraphs :: Text = p:paragraph { p }
+paragraphs :: Text = p:paragraph ps:(n:NIhO_ p:paragraph { (n, p) })*
+	{ if null ps then p else NIhO p ps }
 
 -- stub
-paragraph :: Text = s:statement { s }
+paragraph :: Text = s:statement is:(i:I_ s:statement { (i, s) })*
+	{ if null is then s else I s is }
 
 -- stub
-statement :: Text = s:statement_1 { s }
+statement :: Text = s:statement_1 is:
+	( i:I_ j:joik s:statement_1		{ (i, j, s) }
+ )*
+	{ if null is then s else ICon s is }
 
 -- stub
 statement_1 :: Text = s:sentence is:
@@ -641,6 +647,10 @@ NA_ :: Tag = pr:pre n:NA ps:post			{ baheFree NA NAF
 
 NAhE_ :: Prefix = pr:pre n:NAhE ps:post			{ baheFree NAhE NAhEF
 								BNAhE BNAhEF
+								pr n ps }
+
+NIhO_ :: Separator = pr:pre n:NIhO ps:post		{ baheFree Sep SepF
+								BSep BSepF
 								pr n ps }
 
 NU_ :: Initiator = pr:pre n:NU ps:post			{ baheFree Init InitF
