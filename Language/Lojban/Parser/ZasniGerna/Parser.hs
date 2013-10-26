@@ -33,7 +33,9 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= IBO Text [(I, Connective, BO, Text)]
+	= I Text [(Separator, Text)]
+	| ICon Text [(Separator, Connective, Text)]
+	| IBO Text [(Separator, Connective, BO, Text)]
 	| BridiTail Text Text
 	| Con Text [(Connective, Text)]
 	| ConBO Text [(Connective, BO, Text)]
@@ -197,11 +199,13 @@ data CO	= CO String
 	| BCOF [String] String Free
 	deriving Show
 
+{-
 data I	= I String
 	| IF String Free
 	| BI [String] String
 	| BIF [String] String Free
 	deriving Show
+	-}
 
 data Suffix
 	= Suffix String
@@ -559,8 +563,8 @@ GIhA_ :: Connective = pr:pre g:GIhA ps:post		{ baheFree GIhA GIhAF
 								BGIhA BGIhAF
 								pr g ps }
 
-I_ :: I = pr:pre i:SelmahoI ps:post				{ baheFree I IF
-								BI BIF
+I_ :: Separator = pr:pre i:SelmahoI ps:post		{ baheFree Sep SepF
+								BSep BSepF
 								pr i ps }
 
 JAI_ :: Prefix = pr:pre j:JAI ps:post			{ baheFree JAI JAIF
