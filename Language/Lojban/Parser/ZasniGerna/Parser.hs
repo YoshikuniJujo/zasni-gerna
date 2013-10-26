@@ -33,7 +33,8 @@ maybeCons :: Maybe a -> [a] -> [a]
 maybeCons mx xs = maybe xs (: xs) mx
 
 data Text
-	= BridiTail Text Text
+	= IBO Text [(I, Connective, BO, Text)]
+	| BridiTail Text Text
 	| Con Text [(Connective, Text)]
 	| ConBO Text [(Connective, BO, Text)]
 	| Gihek Text [(Connective, Text, Text)]
@@ -138,6 +139,7 @@ data Connective
 	| GIhAF String Free
 	| BGIhA [String] String
 	| BGIhAF [String] String Free
+	| NC
 	deriving Show
 
 data Lerfu
@@ -193,6 +195,12 @@ data CO	= CO String
 	| COF String Free
 	| BCO [String] String
 	| BCOF [String] String Free
+	deriving Show
+
+data I	= I String
+	| IF String Free
+	| BI [String] String
+	| BIF [String] String Free
 	deriving Show
 
 data Suffix
@@ -294,7 +302,19 @@ text :: (Text, Terminator)
 							{ (p, fromMaybe NT f) }
 
 -- stub
-paragraphs :: Text = s:sentence { s }
+paragraphs :: Text = p:paragraph { p }
+
+-- stub
+paragraph :: Text = s:statement { s }
+
+-- stub
+statement :: Text = s:statement_1 { s }
+
+-- stub
+statement_1 :: Text = s:sentence is:
+	( i:I_ j:joik? t:tag? b:BO_ s:sentence
+		{ (i, fromMaybe NC j, maybe b (flip TagBO b) t, s) }
+ )*	{ if null is then s else IBO s is }
 
 -- 2. Sentence Bridi
 
@@ -538,6 +558,10 @@ GI_ :: Connective = pr:pre g:GI ps:post			{ baheFree GI GIF
 GIhA_ :: Connective = pr:pre g:GIhA ps:post		{ baheFree GIhA GIhAF
 								BGIhA BGIhAF
 								pr g ps }
+
+I_ :: I = pr:pre i:SelmahoI ps:post				{ baheFree I IF
+								BI BIF
+								pr i ps }
 
 JAI_ :: Prefix = pr:pre j:JAI ps:post			{ baheFree JAI JAIF
 								BJAI BJAIF
