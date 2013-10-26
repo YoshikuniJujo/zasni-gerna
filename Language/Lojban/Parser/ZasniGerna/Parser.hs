@@ -86,6 +86,7 @@ data Text
 	| BClause [String] Word
 	| BClauseF [String] Word Free
 	| Lergum [Lerfu] Terminator
+	| TUhE Initiator Text Terminator
 	deriving Show
 
 data Relative
@@ -293,8 +294,8 @@ paragraphs :: Text = s:sentence { s }
 sentence :: Text
 	= tc:(t:term+ c:CU_? { Terms t $ fromMaybe NT c })?  b:bridi_tail
 		{ maybe b (flip Bridi b) tc }
---	/ te:TUhE_ p:paragraphs tu:TUhU_
---	/ ge:gek s:sentence gi:GI_ s:sentence
+	/ te:TUhE_ p:paragraphs tu:TUhU_		{ TUhE te p tu }
+	/ ge:gek s1:sentence gi:GI_ s2:sentence		{ Gek ge s1 gi s2 }
 --	/ t:term+ z:ZOhU_ s:sentence
 --	/ t:term* v:VAU_?
 
@@ -614,6 +615,14 @@ NU_ :: Initiator = pr:pre n:NU ps:post			{ baheFree Init InitF
 SE_ :: Prefix = pr:pre s:SE ps:post			{ baheFree SE SEF
 								BSE BSEF
 								pr s ps }
+
+TUhE_ :: Initiator = pr:pre t:TUhE ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr t ps }
+
+TUhU_ :: Terminator = pr:pre t:TUhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr t ps }
 
 UI_ :: Free = pr:pre u:UI ps:post			{ baheFree UI UIF
 								BUI BUIF
