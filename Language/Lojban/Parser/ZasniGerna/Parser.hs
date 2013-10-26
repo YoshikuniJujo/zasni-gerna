@@ -121,7 +121,13 @@ data Tag
 	deriving Show
 
 data Mex
-	= Stub String
+	= MRel Mex Relative
+	| MJoik Mex [(Connective, Mex)]
+	| M1 String
+	| M1F String Free
+	| BM1 [String] String
+	| BM1F [String] String Free
+	| Stub String
 	| NQ
 	deriving Show
 
@@ -306,21 +312,17 @@ text :: (Free, Text, Terminator)
 	= _:words_SU* _:SI_tail* ps:post p:paragraphs f:FAhO_?
 	{ (fromMaybe NF ps, p, fromMaybe NT f) }
 
--- stub
 paragraphs :: Text = p:paragraph ps:(n:NIhO_ p:paragraph { (n, p) })*
 	{ if null ps then p else NIhO p ps }
 
--- stub
 paragraph :: Text = s:statement is:(i:I_ s:statement { (i, s) })*
 	{ if null is then s else I s is }
 
--- stub
 statement :: Text = s:statement_1 is:
 	( i:I_ j:joik s:statement_1		{ (i, j, s) }
  )*
 	{ if null is then s else ICon s is }
 
--- stub
 statement_1 :: Text = s:sentence is:
 	( i:I_ j:joik? t:tag? b:BO_ s:sentence
 		{ (i, fromMaybe NC j, maybe b (flip TagBO b) t, s) }
@@ -412,11 +414,16 @@ description :: Text = l:LE_ rs:(r:rels { r } / s:bare_sumti { RelSumti s })?
 
 -- 4. Mex
 
--- stub
-quantifier :: Mex = m:mex { m }
+quantifier :: Mex
+	= !_:bare_sumti !_:selbri m:mex r:rels?		{ maybe m (MRel m) r }
 
 -- stub
-mex :: Mex = p:PA { Stub p }
+mex :: Mex = m:mex_1 jm:(j:joik m':mex_1 { (j, m') })*
+	{ if null jm then m else MJoik m jm }
+
+-- stub
+mex_1 :: Mex
+	= p:PA_ { p }
 
 lerfu :: Lerfu
 	= b:BY_						{ b }
@@ -657,6 +664,10 @@ NU_ :: Initiator = pr:pre n:NU ps:post			{ baheFree Init InitF
 								BInit BInitF
 								pr n ps }
 
+PA_ :: Mex = pr:pre p:PA ps:number_post			{ baheFree M1 M1F
+								BM1 BM1F
+								pr p ps }
+
 SE_ :: Prefix = pr:pre s:SE ps:post			{ baheFree SE SEF
 								BSE BSEF
 								pr s ps }
@@ -713,7 +724,8 @@ pre :: [String] = bs:(_:word_SI* b:BAhE { b })* _:word_SI*
 
 post :: Maybe Free = !_:BU_tail !_:ZEI_tail f:free?	{ f }
 
--- number_post :: () = !_:BU_tail !_:ZEI_tail (!_:PA_ _:free)?
+number_post :: Maybe Free = !_:BU_tail !_:ZEI_tail fr:(!_:PA_ f:free { f })?
+							{ fr }
 
 lerfu_post :: Maybe Free = !_:BU_tail !_:ZEI_tail fr:(!_:lerfu f:free { f })?
 							{ fr }
