@@ -47,6 +47,7 @@ data Text
 	| LE Initiator Relative Mex Text Terminator
 	| Terms [Text] Terminator
 	| Bridi Text Text
+	| ZOhU Text Text
 	| Tag Tag Text
 	| Tags [Tag] Text
 	| TagKU Tag Terminator
@@ -156,6 +157,13 @@ data Terminator
 	| BTerm [String] String
 	| BTermF [String] String Free
 	| NT
+	deriving Show
+
+data Separator
+	= Sep String
+	| SepF String Free
+	| BSep [String] String
+	| BSepF [String] String Free
 	deriving Show
 
 data Prefix
@@ -290,14 +298,13 @@ paragraphs :: Text = s:sentence { s }
 
 -- 2. Sentence Bridi
 
--- stub
 sentence :: Text
 	= tc:(t:term+ c:CU_? { Terms t $ fromMaybe NT c })?  b:bridi_tail
 		{ maybe b (flip Bridi b) tc }
 	/ te:TUhE_ p:paragraphs tu:TUhU_		{ TUhE te p tu }
 	/ ge:gek s1:sentence gi:GI_ s2:sentence		{ Gek ge s1 gi s2 }
---	/ t:term+ z:ZOhU_ s:sentence
---	/ t:term* v:VAU_?
+	/ t:term+ z:ZOhU_ s:sentence			{ ZOhU (Terms t z) s }
+	/ t:term* v:VAU_?				{ Terms t $ fromMaybe NT v }
 
 bridi_tail :: Text = b:bridi_tail_1 gb:
 	( g:gihek b:bridi_tail_1 t:term* v:VAU_?
@@ -635,6 +642,10 @@ VAU_ :: Terminator = pr:pre v:VAU ps:post		{ baheFree Term TermF
 VUhO_ :: VUhO = pr:pre v:VUhO ps:post			{ baheFree VUhO VUhOF
 								BVUhO BVUhOF
 								pr v ps }
+
+ZOhU_ :: Terminator = pr:pre z:ZOhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr z ps }
 
 --- 12. Pseudo SELMAhO ---
 
