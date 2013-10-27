@@ -134,6 +134,7 @@ data Mex
 	| LerfuF Word Free
 	| BLerfu [String] Word
 	| BLerfuF [String] Word Free
+	| NIhE Initiator Text Terminator
 	deriving Show
 
 type Lerfu = Mex
@@ -427,6 +428,7 @@ mex :: Mex = m:mex_1 jm:(j:joik m':mex_1 { (j, m') })*
 mex_1 :: Mex
 	= p:PA_+ b:BOI_?				{ mkMex1 p b }
 	/ l:lerfu+ b:BOI_?				{ mkMex1 l b }
+	/ n:NIhE_ s:selbri t:TEhU_?			{ NIhE n s $ fromMaybe NT t }
 
 lerfu :: Lerfu
 	= b:BY_						{ b }
@@ -661,6 +663,10 @@ NAhE_ :: Prefix = pr:pre n:NAhE ps:post			{ baheFree NAhE NAhEF
 								BNAhE BNAhEF
 								pr n ps }
 
+NIhE_ :: Initiator = pr:pre n:NIhE ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr n ps }
+
 NIhO_ :: Separator = pr:pre n:NIhO ps:post		{ baheFree Sep SepF
 								BSep BSepF
 								pr n ps }
@@ -679,6 +685,10 @@ SE_ :: Prefix = pr:pre s:SE ps:post			{ baheFree SE SEF
 
 TUhE_ :: Initiator = pr:pre t:TUhE ps:post		{ baheFree Init InitF
 								BInit BInitF
+								pr t ps }
+
+TEhU_ :: Terminator = pr:pre t:TEhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
 								pr t ps }
 
 TUhU_ :: Terminator = pr:pre t:TUhU ps:post		{ baheFree Term TermF
