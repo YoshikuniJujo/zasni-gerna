@@ -135,6 +135,9 @@ data Mex
 	| BLerfu [String] Word
 	| BLerfuF [String] Word Free
 	| NIhE Initiator Text Terminator
+	| VEI Initiator Mex Terminator
+	| MLAhE Initiator Mex Terminator
+	| MNAhEBO Prefix BO Mex Terminator
 	deriving Show
 
 type Lerfu = Mex
@@ -428,7 +431,14 @@ mex :: Mex = m:mex_1 jm:(j:joik m':mex_1 { (j, m') })*
 mex_1 :: Mex
 	= p:PA_+ b:BOI_?				{ mkMex1 p b }
 	/ l:lerfu+ b:BOI_?				{ mkMex1 l b }
-	/ n:NIhE_ s:selbri t:TEhU_?			{ NIhE n s $ fromMaybe NT t }
+	/ n:NIhE_ s:selbri t:TEhU_?		{ NIhE n s $ fromMaybe NT t }
+	/ vei:VEI_ m:mex veho:VEhO_?		{ VEI vei m $ fromMaybe NT veho }
+	/ lnb:(l:LAhE_ { Left l } / n:NAhE_ b:BO_ { Right (n, b) })
+		m:mex luhu:LUhU_?
+	{ either
+		(\l -> MLAhE l m $ fromMaybe NT luhu)
+		(\(n, b) -> MNAhEBO n b m $ fromMaybe NT luhu)
+		lnb }
 
 lerfu :: Lerfu
 	= b:BY_						{ b }
@@ -700,6 +710,14 @@ UI_ :: Free = pr:pre u:UI ps:post			{ baheFree UI UIF
 								pr u ps }
 
 VAU_ :: Terminator = pr:pre v:VAU ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr v ps }
+
+VEI_ :: Initiator = pr:pre v:VEI ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr v ps }
+
+VEhO_ :: Terminator = pr:pre v:VEhO ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr v ps }
 
