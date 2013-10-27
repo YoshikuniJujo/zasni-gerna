@@ -130,7 +130,10 @@ data Mex
 	| BP1F [String] String Free
 	| Stub String
 	| NQ
-	| Lerfu [String] Word (Maybe Free)
+	| Lerfu Word
+	| LerfuF Word Free
+	| BLerfu [String] Word
+	| BLerfuF [String] Word Free
 	deriving Show
 
 type Lerfu = Mex
@@ -536,7 +539,9 @@ BOI_ :: Terminator = pr:pre b:BOI ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr b ps }
 
-BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ Lerfu pr (Word b) ps }
+BY_ :: Lerfu = pr:pre b:BY ps:lerfu_post		{ baheFree Lerfu LerfuF
+								BLerfu BLerfuF
+								pr (Word b) ps }
 
 CEI_ :: Initiator = pr:pre c:CEI ps:post		{ baheFree Init InitF
 								BInit BInitF
@@ -702,7 +707,9 @@ word_ZEI_word_ :: Text = pr:pre z:word_ZEI_word ps:post	{ baheFree Clause Clause
 								BClause BClauseF
 								pr z ps }
 
-word_BU_ :: Lerfu = pr:pre b:word_BU ps:post		{ Lerfu pr b ps }
+word_BU_ :: Lerfu = pr:pre b:word_BU ps:post		{ baheFree Lerfu LerfuF
+								BLerfu BLerfuF
+								pr b ps }
 
 ZO_word_ :: Text = pr:pre z:ZO_word ps:post		{ baheFree Clause ClauseF
 								BClause BClauseF
