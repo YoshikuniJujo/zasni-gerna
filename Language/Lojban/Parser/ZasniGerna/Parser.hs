@@ -95,7 +95,9 @@ data Text
 	deriving Show
 
 data Relative
-	= GOIKOhA [String] String (Maybe Free) Text
+	= GOI Initiator Text Terminator
+	| NOI Initiator Text Terminator
+	| ZIhE Relative [(Separator, Relative)]
 	| RelSumti Text
 	| VR VUhO Relative
 	| NR
@@ -427,7 +429,6 @@ quantifier :: Mex
 mex :: Mex = m:mex_1 jm:(j:joik m':mex_1 { (j, m') })*
 	{ if null jm then m else MJoik m jm }
 
--- stub
 mex_1 :: Mex
 	= p:PA_+ b:BOI_?				{ mkMex1 p b }
 	/ l:lerfu+ b:BOI_?				{ mkMex1 l b }
@@ -446,12 +447,15 @@ lerfu :: Lerfu
 
 -- 5. Relative
 
--- stub
-rels :: Relative = (b, g, f):GOI_ k:KOhA_ { GOIKOhA b g f k }
+rels :: Relative = r:rel rs:(z:ZIhE_ r:rel { (z, r) })*
+	{ if null rs then r else ZIhE r rs }
+
+rel :: Relative
+	= goi:GOI_ t:term gehu:GEhU_?		{ GOI goi t $ fromMaybe NT gehu }
+	/ n:NOI_ s:sentence k:KUhO_?		{ NOI n s $ fromMaybe NT k }
 
 -- 6. Selbri Tanru unit
 
--- stub
 selbri :: Text
 	= sl:selbri_1+ cs:(c:CO_ s:selbri_1 { (c, s) })* r:rels?
 		cei:(c:CEI_ s:selbri { (c, s) })?	{ mkSelbri sl cs r cei }
@@ -567,7 +571,9 @@ CU_ :: Terminator = pr:pre c:CU ps:post			{ baheFree Term TermF
 								BTerm BTermF
 								pr c ps }
 
-GOI_ :: ([String], String, Maybe Free) = pr:pre g:GOI ps:post	{ (pr, g, ps) }
+GOI_ :: Initiator = pr:pre g:GOI ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr g ps }
 
 GOhA_ :: Text = pr:pre g:GOhA ps:post			{ baheFree GOhA GOhAF
 								BGOhA BGOhAF
@@ -583,6 +589,10 @@ FAhO_ :: Terminator = pr:pre f:FAhO ps:post		{ baheFree Term TermF
 
 GA_ :: Connective = pr:pre g:GA ps:post			{ baheFree GA GAF
 								BGA BGAF
+								pr g ps }
+
+GEhU_ :: Terminator = pr:pre g:GEhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
 								pr g ps }
 
 GI_ :: Connective = pr:pre g:GI ps:post			{ baheFree GI GIF
@@ -622,6 +632,10 @@ KOhA_ :: Text = pr:pre k:KOhA ps:post			{ baheFree KOhA KOhAF
 								pr k ps }
 
 KU_ :: Terminator = pr:pre k:KU ps:post			{ baheFree Term TermF
+								BTerm BTermF
+								pr k ps }
+
+KUhO_ :: Terminator = pr:pre k:KUhO ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr k ps }
 
@@ -681,6 +695,10 @@ NIhO_ :: Separator = pr:pre n:NIhO ps:post		{ baheFree Sep SepF
 								BSep BSepF
 								pr n ps }
 
+NOI_ :: Initiator = pr:pre n:NOI ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr n ps }
+
 NU_ :: Initiator = pr:pre n:NU ps:post			{ baheFree Init InitF
 								BInit BInitF
 								pr n ps }
@@ -724,6 +742,10 @@ VEhO_ :: Terminator = pr:pre v:VEhO ps:post		{ baheFree Term TermF
 VUhO_ :: VUhO = pr:pre v:VUhO ps:post			{ baheFree VUhO VUhOF
 								BVUhO BVUhOF
 								pr v ps }
+
+ZIhE_ :: Separator = pr:pre z:ZIhE ps:post		{ baheFree Sep SepF
+								BSep BSepF
+								pr z ps }
 
 ZOhU_ :: Terminator = pr:pre z:ZOhU ps:post		{ baheFree Term TermF
 								BTerm BTermF
