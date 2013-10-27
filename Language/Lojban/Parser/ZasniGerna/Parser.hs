@@ -121,6 +121,8 @@ data Tag
 	| NAF String Free
 	| BNA [String] String
 	| BNAF [String] String Free
+	| TTags [Tag]
+	| TTagCons Tag [(Connective, Tag)]
 	deriving Show
 
 data Mex
@@ -162,6 +164,7 @@ data Connective
 	| GIhAF String Free
 	| BGIhA [String] String
 	| BGIhAF [String] String Free
+	| JOIGI Connective Connective
 	| NACon Tag Connective
 	| SECon Prefix Connective
 	| NASECon Tag Prefix Connective
@@ -318,6 +321,16 @@ mkConnective (Just n) (Just s) c = NASECon n s c
 mkConnective (Just n) _ c = NACon n c
 mkConnective _ (Just s) c = SECon s c
 mkConnective _ _ c = c
+
+mkTags :: [Tag] -> Tag
+mkTags [t] = t
+mkTags ts = TTags ts
+
+mkTagCons :: [Tag] -> [(Connective, Tag)] -> Tag
+mkTagCons [t] [] = t
+mkTagCons [t] cts = TTagCons t cts
+mkTagCons ts [] = TTags ts
+mkTagCons ts cts = TTagCons (TTags ts) cts
 
 [papillon|
 
@@ -519,16 +532,25 @@ linkargs :: Linkargs
 joik :: Connective
 	= n:NA_? s:SE_? j:JOI_				{ mkConnective n s j }
 
--- stub
-gihek :: Connective = g:GIhA_	{ g }
+gihek :: Connective
+	= n:NA_? s:SE_? g:GIhA_				{ mkConnective n s g }
 
 -- stub
-gek :: Connective = g:GA_	{ g }
+gek :: Connective
+	= s:SE_? g:GA_		{ maybe g (flip SECon g) s }
+	/ s:SE_? j:JOI_ g:GI_	{ maybe (JOIGI j g) (flip SECon $ JOIGI j g) s }
+--	/ t:tag_unit+ jt:(j:joik t':tag_unit+ { (j, mkTags t') })* g:GI_
+--				{ mkTagCons t jt }
 
 -- 9. Tense Modal
 
 -- stub
-tag :: Tag = b:BAI_		{ b }
+tag :: Tag
+	= t:tag_unit+ jt:(j:joik t':tag_unit+ { (j, mkTags t') })*
+	{ mkTagCons t jt }
+
+-- stub
+tag_unit :: Tag = b:BAI_	{ b }
 
 -- 10. Free modifier
 
