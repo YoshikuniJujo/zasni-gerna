@@ -411,9 +411,9 @@ bare_sumti :: Text = s:
 	/ l:LOhU_words_LEhU_			{ l }
 	/ z:ZOI_anything_			{ z }
 	/ k:KOhA_				{ k }
-	/ {- !_:tag !_:selbri -} ls:(l:lerfu { l })+ b:BOI_?
+	/ !_:tag !_:selbri ls:(l:lerfu { l })+ b:BOI_?
 						{ Lergum ls $ fromMaybe NT b }
-	/ {- !_:tag !_:selbri -}
+	/ !_:tag !_:selbri
 		ln:(l:LAhE_ { Left l } / n:NAhE_ b:BO_ { Right (n, b) })
 		r:rels? s:sumti lu:LUhU_?	{ either
 							(\l -> LAhE l
@@ -509,7 +509,6 @@ tanru_unit_1 :: Text
 
 -- 7. Link args
 
--- stub
 linkargs :: Linkargs
 	= be:BE_ t:term bts:(b:BEI_ t':term { (b, t') })* beho:BEhO_?
 	{ if null bts then BE be t $ fromMaybe NT beho
@@ -517,7 +516,6 @@ linkargs :: Linkargs
 
 -- 8. Connective
 
--- stub
 joik :: Connective
 	= n:NA_? s:SE_? j:JOI_				{ mkConnective n s j }
 
@@ -534,6 +532,7 @@ tag :: Tag = b:BAI_		{ b }
 
 -- 10. Free modifier
 
+-- stub
 free :: Free
 	= u:UI_						{ u }
 
