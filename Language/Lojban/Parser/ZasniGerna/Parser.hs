@@ -123,13 +123,17 @@ data Tag
 data Mex
 	= MRel Mex Relative
 	| MJoik Mex [(Connective, Mex)]
-	| M1 String
-	| M1F String Free
-	| BM1 [String] String
-	| BM1F [String] String Free
+	| Ms [Mex] Terminator
+	| P1 String
+	| P1F String Free
+	| BP1 [String] String
+	| BP1F [String] String Free
 	| Stub String
 	| NQ
+	| Lerfu [String] Word (Maybe Free)
 	deriving Show
+
+type Lerfu = Mex
 
 data Connective
 	= GA String
@@ -149,10 +153,6 @@ data Connective
 	| BGIhA [String] String
 	| BGIhAF [String] String Free
 	| NC
-	deriving Show
-
-data Lerfu
-	= Lerfu [String] Word (Maybe Free)
 	deriving Show
 
 data Initiator
@@ -296,9 +296,9 @@ mkGihekBO :: Connective -> Maybe Tag -> BO -> Text -> [Text] -> Maybe Terminator
 mkGihekBO g tag bo b terms v =
 	(g, maybe bo (flip TagBO bo) tag, b, Terms terms $ fromMaybe NT v)
 
---	( g:gihek t:tag? bo:BO_ b':bridi_tail_2 t:term* v:VAU_?
---		{mkGihekBO g t bo b' t v} )*
---	| GihekBO Text [(Connective, BO, Text, Text)]
+mkMex1 :: [Mex] -> Maybe Terminator -> Mex
+mkMex1 [m] Nothing = m
+mkMex1 ms v = Ms ms $ fromMaybe NT v
 
 [papillon|
 
@@ -417,13 +417,13 @@ description :: Text = l:LE_ rs:(r:rels { r } / s:bare_sumti { RelSumti s })?
 quantifier :: Mex
 	= !_:bare_sumti !_:selbri m:mex r:rels?		{ maybe m (MRel m) r }
 
--- stub
 mex :: Mex = m:mex_1 jm:(j:joik m':mex_1 { (j, m') })*
 	{ if null jm then m else MJoik m jm }
 
 -- stub
 mex_1 :: Mex
-	= p:PA_ { p }
+	= p:PA_+ b:BOI_?				{ mkMex1 p b }
+	/ l:lerfu+ b:BOI_?				{ mkMex1 l b }
 
 lerfu :: Lerfu
 	= b:BY_						{ b }
@@ -664,8 +664,8 @@ NU_ :: Initiator = pr:pre n:NU ps:post			{ baheFree Init InitF
 								BInit BInitF
 								pr n ps }
 
-PA_ :: Mex = pr:pre p:PA ps:number_post			{ baheFree M1 M1F
-								BM1 BM1F
+PA_ :: Mex = pr:pre p:PA ps:number_post			{ baheFree P1 P1F
+								BP1 BP1F
 								pr p ps }
 
 SE_ :: Prefix = pr:pre s:SE ps:post			{ baheFree SE SEF
