@@ -81,7 +81,7 @@ data Text
 	| NU Initiator Text Terminator
 	| KE Initiator Text Terminator
 	| Prefix Prefix Text
-	| BE Text Linkargs
+	| Link Text Linkargs
 	| LI Initiator Mex Terminator
 	| LU Initiator Text Terminator
 	| LAhE Initiator Relative Text Terminator
@@ -104,7 +104,8 @@ data Relative
 	deriving Show
 
 data Linkargs
-	= StubLinkargs Initiator Text
+	= BE Initiator Text Terminator
+	| BEI Initiator Text [(Separator, Text)] Terminator
 	deriving Show
 
 data Tag
@@ -474,7 +475,7 @@ selbri_3 :: Text = t:tanru_unit bts:(b:BO_ t:tanru_unit { (b, t) })*
 	{ if null bts then t else TanruBO t bts }
 
 tanru_unit :: Text
-	= t:tanru_unit_1	l:linkargs?		{ maybe t (BE t) l }
+	= t:tanru_unit_1	l:linkargs?		{ maybe t (Link t) l }
 
 tanru_unit_1 :: Text
 	= b:BRIVLA_					{ b }
@@ -501,7 +502,9 @@ tanru_unit_1 :: Text
 
 -- stub
 linkargs :: Linkargs
-	= b:BE_ t:term				{ StubLinkargs b t }
+	= be:BE_ t:term bts:(b:BEI_ t':term { (b, t') })* beho:BEhO_?
+	{ if null bts then BE be t $ fromMaybe NT beho
+		else BEI be t bts $ fromMaybe NT beho }
 
 -- 8. Connective
 
@@ -545,6 +548,14 @@ BAI_ :: Tag = pr:pre b:BAI ps:post			{ baheFree BAI BAIF
 
 BE_ :: Initiator = pr:pre b:BE ps:post			{ baheFree Init InitF
 								BInit BInitF
+								pr b ps }
+
+BEI_ :: Separator = pr:pre b:BEI ps:post		{ baheFree Sep SepF
+								BSep BSepF
+								pr b ps }
+
+BEhO_ :: Terminator = pr:pre b:BEhO ps:post		{ baheFree Term TermF
+								BTerm BTermF
 								pr b ps }
 
 BO_ :: BO = pr:pre b:BO ps:post				{ baheFree BO BOF
