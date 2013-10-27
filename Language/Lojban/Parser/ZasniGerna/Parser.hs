@@ -162,6 +162,9 @@ data Connective
 	| GIhAF String Free
 	| BGIhA [String] String
 	| BGIhAF [String] String Free
+	| NACon Tag Connective
+	| SECon Prefix Connective
+	| NASECon Tag Prefix Connective
 	| NC
 	deriving Show
 
@@ -309,6 +312,12 @@ mkGihekBO g tag bo b terms v =
 mkMex1 :: [Mex] -> Maybe Terminator -> Mex
 mkMex1 [m] Nothing = m
 mkMex1 ms v = Ms ms $ fromMaybe NT v
+
+mkConnective :: Maybe Tag -> Maybe Prefix -> Connective -> Connective
+mkConnective (Just n) (Just s) c = NASECon n s c
+mkConnective (Just n) _ c = NACon n c
+mkConnective _ (Just s) c = SECon s c
+mkConnective _ _ c = c
 
 [papillon|
 
@@ -509,7 +518,8 @@ linkargs :: Linkargs
 -- 8. Connective
 
 -- stub
-joik :: Connective = j:JOI_	{ j }
+joik :: Connective
+	= n:NA_? s:SE_? j:JOI_				{ mkConnective n s j }
 
 -- stub
 gihek :: Connective = g:GIhA_	{ g }
