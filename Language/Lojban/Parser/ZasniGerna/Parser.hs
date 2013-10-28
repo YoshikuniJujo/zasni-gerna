@@ -270,6 +270,7 @@ data Free
 	| Vocative [Free] Text Terminator
 	| FXI Prefix Mex
 	| MAI Mex Suffix
+	| SEI Initiator Text Terminator
 	| NF
 	deriving Show
 
@@ -587,8 +588,9 @@ free :: Free
 	= u:UI_						{ u }
 	/ x:XI_ m:mex_1					{ FXI x m }
 	/ m:mex_1 mai:MAI_				{ MAI m mai }
---	/ sei:SEI_ tc:(t:term+ c:CU_?)? s:selbri sehu:SEhU_?
---							{ }
+	/ sei:SEI_ tc:(t:term+ c:CU_? { Terms t $ fromMaybe NT c })?
+		s:selbri sehu:SEhU_?
+		{ SEI sei (maybe s (flip Bridi s) tc) $ fromMaybe NT sehu }
 --	/ t:TO_ p:paragraphs t:TOI_?			{ }
 	/ v:vocative					{ v }
 
@@ -816,6 +818,14 @@ ROI_ :: Suffix = pr:pre r:ROI ps:post			{ baheFree Suffix SuffixF
 
 SE_ :: Prefix = pr:pre s:SE ps:post			{ baheFree SE SEF
 								BSE BSEF
+								pr s ps }
+
+SEI_ :: Initiator = pr:pre s:SEI ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr s ps }
+
+SEhU_ :: Terminator = pr:pre s:SEhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
 								pr s ps }
 
 TUhE_ :: Initiator = pr:pre t:TUhE ps:post		{ baheFree Init InitF
