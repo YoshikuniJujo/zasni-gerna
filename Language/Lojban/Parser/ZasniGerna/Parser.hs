@@ -212,6 +212,10 @@ data Prefix
 	| BJAI [String] String
 	| BJAIF [String] String Free
 	| JAITag Prefix Tag
+	| XI String
+	| XIF String Free
+	| BXI [String] String
+	| BXIF [String] String Free
 	deriving Show
 
 data BO = BO String
@@ -264,6 +268,7 @@ data Free
 	| BCOIF [String] String Free
 	| COIs [Free] Terminator
 	| Vocative [Free] Text Terminator
+	| FXI Prefix Mex
 	| NF
 	deriving Show
 
@@ -579,6 +584,11 @@ tag_unit :: Tag
 -- stub
 free :: Free
 	= u:UI_						{ u }
+	/ x:XI_ m:mex_1					{ FXI x m }
+--	/ m:mex_1 m:MAI_				{ }
+--	/ sei:SEI_ tc:(t:term+ c:CU_?)? s:selbri sehu:SEhU_?
+--							{ }
+--	/ t:TO_ p:paragraphs t:TOI_?			{ }
 	/ v:vocative					{ v }
 
 vocative :: Free
@@ -834,6 +844,10 @@ VEhO_ :: Terminator = pr:pre v:VEhO ps:post		{ baheFree Term TermF
 VUhO_ :: VUhO = pr:pre v:VUhO ps:post			{ baheFree VUhO VUhOF
 								BVUhO BVUhOF
 								pr v ps }
+
+XI_ :: Prefix = pr:pre x:XI ps:post			{ baheFree XI XIF
+								BXI BXIF
+								pr x ps }
 
 ZIhE_ :: Separator = pr:pre z:ZIhE ps:post		{ baheFree Sep SepF
 								BSep BSepF
