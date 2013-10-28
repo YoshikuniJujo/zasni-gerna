@@ -1,5 +1,23 @@
 module Language.Lojban.Parser.ZasniGerna (
-	parse
+	parse,
+	Text(..),
+	Free(..),
+	Terminator(..),
+	Separator(..),
+	Connective(..),
+	BO(..),
+	CO(..),
+	Relative(..),
+	Initiator(..),
+	Mex(..),
+	Lerfu,
+	Tag(..),
+	Prefix(..),
+	Suffix(..),
+	Linkargs(..),
+	Word(..),
+	ZEI(..),
+	BU(..)
  ) where
 
 import Language.Lojban.Parser.ZasniGerna.Parser
