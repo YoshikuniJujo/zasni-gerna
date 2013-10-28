@@ -56,6 +56,7 @@ data Text
 	| Tags [Tag] Text
 	| TagKU Tag Terminator
 	| Rel Text Relative
+	| RelSelbri Relative Text
 	| CEI Text Initiator Text
 	| BRIVLA String
 	| BRIVLAF String Free
@@ -253,6 +254,16 @@ data Free
 	| UIF String Free
 	| BUI [String] String
 	| BUIF [String] String Free
+	| DOI String
+	| DOIF String Free
+	| BDOI [String] String
+	| BDOIF [String] String Free
+	| COI String
+	| COIF String Free
+	| BCOI [String] String
+	| BCOIF [String] String Free
+	| COIs [Free] Terminator
+	| Vocative [Free] Text Terminator
 	| NF
 	deriving Show
 
@@ -335,6 +346,11 @@ mkTagCons [t] [] = t
 mkTagCons [t] cts = TTagCons t cts
 mkTagCons ts [] = TTags ts
 mkTagCons ts cts = TTagCons (TTags ts) cts
+
+mkVocative :: [Free] -> Maybe Text -> Maybe Terminator -> Free
+mkVocative [c] Nothing Nothing = c
+mkVocative cs (Just s) dohu = Vocative cs s $ fromMaybe NT dohu
+mkVocative cs _ dohu = COIs cs $ fromMaybe NT dohu
 
 [papillon|
 
@@ -551,7 +567,6 @@ tag :: Tag
 	= t:tag_unit+ jt:(j:joik t':tag_unit+ { (j, mkTags t') })* !_:GI_
 	{ mkTagCons t jt }
 
--- stub
 tag_unit :: Tag
 	= b:BAI_					{ b }
 	/ m:mex r:ROI_					{ MexROI m r }
@@ -564,9 +579,13 @@ tag_unit :: Tag
 -- stub
 free :: Free
 	= u:UI_						{ u }
+	/ v:vocative					{ v }
 
--- vocative :: Free
---	= 
+vocative :: Free
+	= cd:(c:COI_+ d:DOI_? { c ++ maybeToList d } / d:DOI_ { [d] })
+		rss:(r:rels? s:selbri { Just $ maybe s (flip RelSelbri s) r } /
+			s:sumti? { s }) dohu:DOhU_?
+	{ mkVocative cd rss dohu }
 
 -- ****** B. LOW LEVEL GRAMMAR ******
 
@@ -616,9 +635,21 @@ CO_ :: CO = pr:pre c:CO ps:post				{ baheFree CO COF
 								BCO BCOF
 								pr c ps }
 
+COI_ :: Free = pr:pre c:COI ps:vocative_post		{ baheFree COI COIF
+								BCOI BCOIF
+								pr c ps }
+
 CU_ :: Terminator = pr:pre c:CU ps:post			{ baheFree Term TermF
 								BTerm BTermF
 								pr c ps }
+
+DOI_ :: Free = pr:pre d:DOI ps:post			{ baheFree DOI DOIF
+								BDOI BDOIF
+								pr d ps }
+
+DOhU_ :: Terminator = pr:pre d:DOhU ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr d ps }
 
 FA_ :: Tag = pr:pre f:FA ps:post			{ baheFree FA FAF
 								BFA BFAF
@@ -848,7 +879,8 @@ number_post :: Maybe Free = !_:BU_tail !_:ZEI_tail fr:(!_:PA_ f:free { f })?
 lerfu_post :: Maybe Free = !_:BU_tail !_:ZEI_tail fr:(!_:lerfu f:free { f })?
 							{ fr }
 
--- vocative_post :: () = !_:BU_tail !_:ZEI_tail (!_:vocative _:free)?
+vocative_post :: Maybe Free = !_:BU_tail !_:ZEI_tail fr:(!_:vocative f:free { f })?
+							{ fr }
 
 -- ****** C. MAGIC WORD CONSTRUCTS ******
 
@@ -1118,6 +1150,25 @@ CEI :: String = _:Y* &_:cmavo r:(c:c e:e i:i { [c, e, i] }) &_:post_cmavo
 
 CO :: String = _:Y* &_:cmavo r:(c:c o:o { [c, o] }) &_:post_cmavo
 							{ r }
+
+COI :: String = _:Y* &_:cmavo r:
+	( j:j u:u h:h i:i				{ [j, u, h, i] }
+	/ c:c o:o i:i					{ [c, o, i] }
+	/ f:f i:i h:h i':i				{ [f, i, h, i'] }
+	/ t:t a:a h:h a':a				{ [t, a, h, a'] }
+	/ m:m u:u h:h o:o				{ [m, u, h, o] }
+	/ f:f e:e h:h o:o				{ [f, e, h, o] }
+	/ c:c o:o h:h o':o				{ [c, o, h, o'] }
+	/ p:p e:e h:h u:u				{ [p, e, h, u] }
+	/ k:k e:e h:h o:o				{ [k, e, h, o] }
+	/ n:n u:u h:h e:e				{ [n, u, h, e] }
+	/ r:r e:e h:h i:i				{ [r, e, h, i] }
+	/ b:b e:e h:h e':e				{ [b, e, h, e'] }
+	/ j:j e:e h:h e':e				{ [j, e, h, e'] }
+	/ m:m i:i h:h e:e				{ [m, i, h, e] }
+	/ k:k i:i h:h e:e				{ [k, i, h, e] }
+	/ v:v i:i h:h o:o				{ [v, i, h, o] }
+ ) &_:post_cmavo					{ r }
 
 CU :: String = _:Y* &_:cmavo r:(c:c u:u { [c, u] }) &_:post_cmavo
 							{ r }
