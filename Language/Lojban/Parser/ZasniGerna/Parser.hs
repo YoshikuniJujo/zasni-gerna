@@ -125,6 +125,7 @@ data Tag
 	| TTagCons Tag [(Connective, Tag)]
 	| MexROI Mex Suffix
 	| FIhO Initiator Text Terminator
+	| PrefixTag Prefix Tag
 	deriving Show
 
 data Mex
@@ -554,7 +555,9 @@ tag :: Tag
 tag_unit :: Tag
 	= b:BAI_					{ b }
 	/ m:mex r:ROI_					{ MexROI m r }
-	/ fi:FIhO_ s:selbri fe:FEhU_			{ FIhO fi s fe }
+	/ fi:FIhO_ s:selbri fe:FEhU_?			{ FIhO fi s $
+								fromMaybe NT fe }
+	/ p:(n:NAhE_ { n } / s:SE_ { s }) t:tag_unit	{ PrefixTag p t }
 
 -- 10. Free modifier
 
