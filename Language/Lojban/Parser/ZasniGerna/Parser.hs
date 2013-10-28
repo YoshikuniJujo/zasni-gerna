@@ -269,6 +269,7 @@ data Free
 	| COIs [Free] Terminator
 	| Vocative [Free] Text Terminator
 	| FXI Prefix Mex
+	| MAI Mex Suffix
 	| NF
 	deriving Show
 
@@ -585,7 +586,7 @@ tag_unit :: Tag
 free :: Free
 	= u:UI_						{ u }
 	/ x:XI_ m:mex_1					{ FXI x m }
---	/ m:mex_1 m:MAI_				{ }
+	/ m:mex_1 mai:MAI_				{ MAI m mai }
 --	/ sei:SEI_ tc:(t:term+ c:CU_?)? s:selbri sehu:SEhU_?
 --							{ }
 --	/ t:TO_ p:paragraphs t:TOI_?			{ }
@@ -764,6 +765,10 @@ LU_ :: Initiator = pr:pre l:LU ps:post			{ baheFree Init InitF
 LUhU_ :: Terminator = pr:pre l:LUhU ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr l ps }
+
+MAI_ :: Suffix = pr:pre m:MAI ps:post			{ baheFree Suffix SuffixF
+								BSuffix BSuffixF
+								pr m ps }
 
 ME_ :: Initiator = pr:pre m:ME ps:post			{ baheFree Init InitF
 								BInit BInitF
