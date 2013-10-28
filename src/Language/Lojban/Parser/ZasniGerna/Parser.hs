@@ -1,14 +1,12 @@
 {-# LANGUAGE TypeFamilies, QuasiQuotes #-}
 
-module Language.Lojban.Parser.ZasniGerna.Parser (
-	testParse
-) where
+module Language.Lojban.Parser.ZasniGerna.Parser where
 
 import Text.Papillon
 import Data.Maybe
 
-testParse :: String -> Either String (Free, Text, Terminator)
-testParse src
+parse :: String -> Either String (Free, Text, Terminator)
+parse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
@@ -230,14 +228,6 @@ data CO	= CO String
 	| BCO [String] String
 	| BCOF [String] String Free
 	deriving Show
-
-{-
-data I	= I String
-	| IF String Free
-	| BI [String] String
-	| BIF [String] String Free
-	deriving Show
-	-}
 
 data Suffix
 	= Suffix String
