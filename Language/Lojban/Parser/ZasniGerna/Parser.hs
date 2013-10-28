@@ -123,6 +123,8 @@ data Tag
 	| BNAF [String] String Free
 	| TTags [Tag]
 	| TTagCons Tag [(Connective, Tag)]
+	| MexROI Mex Suffix
+	| FIhO Initiator Text Terminator
 	deriving Show
 
 data Mex
@@ -168,6 +170,7 @@ data Connective
 	| NACon Tag Connective
 	| SECon Prefix Connective
 	| NASECon Tag Prefix Connective
+	| TAGGI Tag Connective
 	| NC
 	deriving Show
 
@@ -535,22 +538,23 @@ joik :: Connective
 gihek :: Connective
 	= n:NA_? s:SE_? g:GIhA_				{ mkConnective n s g }
 
--- stub
 gek :: Connective
 	= s:SE_? g:GA_		{ maybe g (flip SECon g) s }
 	/ s:SE_? j:JOI_ g:GI_	{ maybe (JOIGI j g) (flip SECon $ JOIGI j g) s }
---	/ t:tag_unit+ jt:(j:joik t':tag_unit+ { (j, mkTags t') })* g:GI_
---				{ mkTagCons t jt }
+	/ t:tag_unit+ jt:(j:joik t':tag_unit+ { (j, mkTags t') })* g:GI_
+				{ TAGGI (mkTagCons t jt) g }
 
 -- 9. Tense Modal
 
--- stub
 tag :: Tag
-	= t:tag_unit+ jt:(j:joik t':tag_unit+ { (j, mkTags t') })*
+	= t:tag_unit+ jt:(j:joik t':tag_unit+ { (j, mkTags t') })* !_:GI_
 	{ mkTagCons t jt }
 
 -- stub
-tag_unit :: Tag = b:BAI_	{ b }
+tag_unit :: Tag
+	= b:BAI_					{ b }
+	/ m:mex r:ROI_					{ MexROI m r }
+	/ fi:FIhO_ s:selbri fe:FEhU_			{ FIhO fi s fe }
 
 -- 10. Free modifier
 
@@ -613,19 +617,19 @@ CU_ :: Terminator = pr:pre c:CU ps:post			{ baheFree Term TermF
 								BTerm BTermF
 								pr c ps }
 
-GOI_ :: Initiator = pr:pre g:GOI ps:post		{ baheFree Init InitF
-								BInit BInitF
-								pr g ps }
-
-GOhA_ :: Text = pr:pre g:GOhA ps:post			{ baheFree GOhA GOhAF
-								BGOhA BGOhAF
-								pr g ps }
-
 FA_ :: Tag = pr:pre f:FA ps:post			{ baheFree FA FAF
 								BFA BFAF
 								pr f ps }
 
 FAhO_ :: Terminator = pr:pre f:FAhO ps:post		{ baheFree Term TermF
+								BTerm BTermF
+								pr f ps }
+
+FIhO_ :: Initiator = pr:pre f:FIhO ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr f ps }
+
+FEhU_ :: Terminator = pr:pre f:FEhU ps:post		{ baheFree Term TermF
 								BTerm BTermF
 								pr f ps }
 
@@ -643,6 +647,14 @@ GI_ :: Connective = pr:pre g:GI ps:post			{ baheFree GI GIF
 
 GIhA_ :: Connective = pr:pre g:GIhA ps:post		{ baheFree GIhA GIhAF
 								BGIhA BGIhAF
+								pr g ps }
+
+GOI_ :: Initiator = pr:pre g:GOI ps:post		{ baheFree Init InitF
+								BInit BInitF
+								pr g ps }
+
+GOhA_ :: Text = pr:pre g:GOhA ps:post			{ baheFree GOhA GOhAF
+								BGOhA BGOhAF
 								pr g ps }
 
 I_ :: Separator = pr:pre i:SelmahoI ps:post		{ baheFree Sep SepF
@@ -748,6 +760,10 @@ NU_ :: Initiator = pr:pre n:NU ps:post			{ baheFree Init InitF
 PA_ :: Mex = pr:pre p:PA ps:number_post			{ baheFree P1 P1F
 								BP1 BP1F
 								pr p ps }
+
+ROI_ :: Suffix = pr:pre r:ROI ps:post			{ baheFree Suffix SuffixF
+								BSuffix BSuffixF
+								pr r ps }
 
 SE_ :: Prefix = pr:pre s:SE ps:post			{ baheFree SE SEF
 								BSE BSEF
