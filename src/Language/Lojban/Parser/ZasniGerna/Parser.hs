@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, QuasiQuotes #-}
+{-# LANGUAGE TypeFamilies, QuasiQuotes, PatternGuards #-}
 
 module Language.Lojban.Parser.ZasniGerna.Parser where
 
@@ -362,20 +362,20 @@ text :: (Free, Text, Terminator)
 	= _:words_SU* _:SI_tail* ps:post p:paragraphs f:FAhO_?
 	{ (fromMaybe NF ps, p, fromMaybe NT f) }
 
-paragraphs :: Text = p:paragraph ps:(n:NIhO_ p:paragraph { (n, p) })*
+paragraphs :: Text = p:paragraph ps:(n:NIhO_ p':paragraph { (n, p') })*
 	{ if null ps then p else NIhO p ps }
 
-paragraph :: Text = s:statement is:(i:I_ s:statement { (i, s) })*
+paragraph :: Text = s:statement is:(i:I_ s':statement { (i, s') })*
 	{ if null is then s else I s is }
 
 statement :: Text = s:statement_1 is:
-	( i:I_ j:joik s:statement_1		{ (i, j, s) }
+	( i:I_ j:joik s':statement_1		{ (i, j, s') }
  )*
 	{ if null is then s else ICon s is }
 
 statement_1 :: Text = s:sentence is:
-	( i:I_ j:joik? t:tag? b:BO_ s:sentence
-		{ (i, fromMaybe NC j, maybe b (flip TagBO b) t, s) }
+	( i:I_ j:joik? t:tag? b:BO_ s':sentence
+		{ (i, fromMaybe NC j, maybe b (flip TagBO b) t, s') }
  )*	{ if null is then s else IBO s is }
 
 -- 2. Sentence Bridi
@@ -389,8 +389,8 @@ sentence :: Text
 	/ t:term* v:VAU_?				{ Terms t $ fromMaybe NT v }
 
 bridi_tail :: Text = b:bridi_tail_1 gb:
-	( g:gihek b:bridi_tail_1 t:term* v:VAU_?
-		{ (g, b, Terms t $ fromMaybe NT v) }
+	( g:gihek b':bridi_tail_1 t:term* v:VAU_?
+		{ (g, b', Terms t $ fromMaybe NT v) }
  )*	{ if null gb then b else Gihek b gb }
 
 bridi_tail_1 :: Text = b:bridi_tail_2 gb:
@@ -403,8 +403,8 @@ bridi_tail_2 :: Text
 		{ if null t && isNothing v then s else
 			BridiTail s $ Terms t $ fromMaybe NT v }
 	/ tn:(t:tag { t } / n:NA_ { n })* ge:gek b1:bridi_tail gi:GI_
-		b2:bridi_tail t:term* v:VAU_?
-		{ mkBridiTail tn ge b1 gi b2 t v }
+		b2:bridi_tail t':term* v:VAU_?
+		{ mkBridiTail tn ge b1 gi b2 t' v }
 
 -- 3. Term Sumti
 
@@ -414,9 +414,9 @@ term :: Text
 	/ f:FA_ k:KU_?					{ TagKU f $ fromMaybe NT k }
 	/ t:tag k:KU_?					{ TagKU t $ fromMaybe NT k }
 	/ n:NA_ k:KU_?					{ TagKU n $ fromMaybe NT k }
-	/ ge:gek t1:term+ v:VAU_? gi:GI_ t2:term+ v:VAU_?
-		{ Gek ge (Terms t1 $ fromMaybe NT v)
-			gi (Terms t2 $ fromMaybe NT v) }
+	/ ge:gek t1:term+ v1:VAU_? gi:GI_ t2:term+ v2:VAU_?
+		{ Gek ge (Terms t1 $ fromMaybe NT v1)
+			gi (Terms t2 $ fromMaybe NT v2) }
 
 sumti :: Text = s1:sumti_1 js:(j:joik s2:sumti_1 { (j, s2) })*
 	vr:(v:VUhO_ r:rels { VR v r })?
@@ -425,7 +425,7 @@ sumti :: Text = s1:sumti_1 js:(j:joik s2:sumti_1 { (j, s2) })*
 
 sumti_1 :: Text = s1:sumti_2 jss:
 	( j:joik t:tag? bw:BO_ s2:sumti_2
-		{ (j, maybe bw (\t -> TagBO t bw) t, s2) }
+		{ (j, maybe bw (\t' -> TagBO t' bw) t, s2) }
  )*	{ if null jss then s1 else ConBO s1 jss }
 
 sumti_2 :: Text
@@ -446,20 +446,20 @@ bare_sumti :: Text = s:
 						{ Lergum ls $ fromMaybe NT b }
 	/ !_:tag !_:selbri
 		ln:(l:LAhE_ { Left l } / n:NAhE_ b:BO_ { Right (n, b) })
-		r:rels? s:sumti lu:LUhU_?	{ either
+		r:rels? s':sumti lu:LUhU_?	{ either
 							(\l -> LAhE l
 								(fromMaybe NR r)
-								s
+								s'
 								(fromMaybe NT lu))
 							(\(n, b) -> NAhEBO n b
 								(fromMaybe NR r)
-								s
+								s'
 								(fromMaybe NT lu))
 							ln }
- ) r:rels?						{ maybe s (Rel s) r }
+ ) r':rels?						{ maybe s (Rel s) r' }
 
-description :: Text = l:LE_ rs:(r:rels { r } / s:bare_sumti { RelSumti s })?
-	q:quantifier? ss:(s:selbri { s } / s:bare_sumti { s }) k:KU_?
+description :: Text = l:LE_ rs:(r:rels { r } / s':bare_sumti { RelSumti s' })?
+	q:quantifier? ss:(s:selbri { s } / s':bare_sumti { s' }) k:KU_?
 	{ LE l (fromMaybe NR rs) (fromMaybe NQ q) ss (fromMaybe NT k) }
 
 -- 4. Mex
@@ -488,7 +488,7 @@ lerfu :: Lerfu
 
 -- 5. Relative
 
-rels :: Relative = r:rel rs:(z:ZIhE_ r:rel { (z, r) })*
+rels :: Relative = r:rel rs:(z:ZIhE_ r':rel { (z, r') })*
 	{ if null rs then r else ZIhE r rs }
 
 rel :: Relative
@@ -499,7 +499,7 @@ rel :: Relative
 
 selbri :: Text
 	= sl:selbri_1+ cs:(c:CO_ s:selbri_1 { (c, s) })* r:rels?
-		cei:(c:CEI_ s:selbri { (c, s) })?	{ mkSelbri sl cs r cei }
+		cei:(c:CEI_ s':selbri { (c, s') })?	{ mkSelbri sl cs r cei }
 	/ t:tag s:selbri				{ Tag t s }
 	/ n:NA_ s:selbri				{ Tag n s }
 
@@ -507,11 +507,11 @@ selbri_1 :: Text = s:selbri_2 js:(j:joik s2:selbri_2 { (j, s2) })*
 	{ if null js then s else Con s js }
 
 selbri_2 :: Text = s:selbri_3 jbs:
-	( j:joik t:tag? b:BO_ s:selbri_3
-		{ (j, maybe b (\t -> TagBO t b) t, s) }
+	( j:joik t:tag? b:BO_ s':selbri_3
+		{ (j, maybe b (\t' -> TagBO t' b) t, s') }
  )*	{ if null jbs then s else ConBO s jbs }
 
-selbri_3 :: Text = t:tanru_unit bts:(b:BO_ t:tanru_unit { (b, t) })*
+selbri_3 :: Text = t:tanru_unit bts:(b:BO_ t':tanru_unit { (b, t') })*
 	{ if null bts then t else TanruBO t bts }
 
 tanru_unit :: Text
@@ -536,7 +536,7 @@ tanru_unit_1 :: Text
 		( s:SE_				{ s }
 		/ j:JAI_ t:tag?			{ maybe j (JAITag j) t }
 		/ n:NAhE_			{ n }
-	 ) t:tanru_unit_1				{ Prefix p t }
+	 ) t':tanru_unit_1				{ Prefix p t' }
 
 -- 7. Link args
 
@@ -982,21 +982,21 @@ BRIVLA :: String = _:Y* b:brivla			{ b }
 CMAVO :: String = _:Y* c:cmavo				{ c }
 
 BAI :: String = _:Y* &_:cmavo r:
-	( c:c a:a h:h a:a			{ [c, a, h, a] }
+	( c:c a:a h:h a':a			{ [c, a, h, a'] }
 	/ p:p u:u h:h i:i			{ [p, u, h, i] }
 	/ n:n u:u h:h o:o			{ [n, u, h, o] }
 	/ k:k a:a h:h e:e			{ [k, a, h, e] }
 	/ c:c u:u h:h e:e			{ [c, u, h, e] }
 	/ n:n a:a u:u				{ [n, a, u] }
-	/ r:r u:u h:h i:i			{ [r, u, h, i] }
+	/ r':r u:u h:h i:i			{ [r', u, h, i] }
 	/ t:t a:a h:h e:e			{ [t, a, h, e] }
 	/ d:d i:i h:h i':i			{ [d, i, h, i'] }
 	/ n:n a:a h:h o:o			{ [n, a, h, o] }
 	/ v:v e:e h:h u:u			{ [v, e, h, u] }
 	/ v:v e:e h:h a:a			{ [v, e, h, a] }
 	/ v:v e:e h:h i:i			{ [v, e, h, i] }
-	/ v:v e:e h:h e:e			{ [v, e, h, e] }
-	/ v:v i:i h:h i:i			{ [v, i, h, i] }
+	/ v:v e:e h:h e':e			{ [v, e, h, e'] }
+	/ v:v i:i h:h i':i			{ [v, i, h, i'] }
 	/ v:v i:i h:h a:a			{ [v, i, h, a] }
 	/ v:v i:i h:h u:u			{ [v, i, h, u] }
 	/ v:v i:i h:h e:e			{ [v, i, h, e] }
@@ -1013,7 +1013,7 @@ BAI :: String = _:Y* &_:cmavo r:
 	/ c:c a:a h:h u:u			{ [c, a, h, u] }
 	/ z:z u:u h:h a:a			{ [z, u, h, a] }
 	/ r:r i:i h:h u:u			{ [r, i, h, u] }
-	/ r:r u:u h:h u:u			{ [r, u, h, u] }
+	/ r:r u:u h:h u':u			{ [r, u, h, u'] }
 	/ r:r e:e h:h o:o			{ [r, e, h, o] }
 	/ t:t e:e h:h e':e			{ [t, e, h, e'] }
 	/ b:b u:u h:h u':u			{ [b, u, h, u'] }
@@ -1028,7 +1028,7 @@ BAI :: String = _:Y* &_:cmavo r:
 	/ z:z e:e h:h u:u			{ [z, e, h, u] }
 	/ z:z e:e h:h a:a			{ [z, e, h, a] }
 	/ z:z e:e h:h i:i			{ [z, e, h, i] }
-	/ z:z e:e h:h e:e			{ [z, e, h, e] }
+	/ z:z e:e h:h e':e			{ [z, e, h, e'] }
 	/ c:c o:o h:h i:i			{ [c, o, h, i] }
 	/ p:p u:u h:h o:o			{ [p, u, h, o] }
 	/ c:c o:o h:h u:u			{ [c, o, h, u] }
@@ -1075,11 +1075,11 @@ BAI :: String = _:Y* &_:cmavo r:
 	/ m:m u:u h:h u':u			{ [m, u, h, u'] }
 	/ r:r i:i h:h i':i			{ [r, i, h, i'] }
 	/ r:r a:a h:h i:i			{ [r, a, h, i] }
-	/ k:k a:a h:h a:a			{ [k, a, h, a] }
+	/ k:k a:a h:h a':a			{ [k, a, h, a'] }
 	/ p:p a:a h:h u:u			{ [p, a, h, u] }
-	/ p:p a:a h:h a:a			{ [p, a, h, a] }
+	/ p:p a:a h:h a':a			{ [p, a, h, a'] }
 	/ l:l e:e h:h a:a			{ [l, e, h, a] }
-	/ k:k u:u h:h u:u			{ [k, u, h, u] }
+	/ k:k u:u h:h u':u			{ [k, u, h, u'] }
 	/ t:t a:a i:i				{ [t, a, i] }
 	/ b:b a:a u:u				{ [b, a, u] }
 	/ m:m a:a h:h i:i			{ [m, a, h, i] }
@@ -1144,16 +1144,16 @@ BY :: String = _:Y* &_:cmavo r:
 	/ l:l a:a u:u				{ [l, a, u] }
 	/ z:z a:a i:i				{ [z, a, i] }
 	/ t:t a:a u:u				{ [t, a, u] }
-	/ j:j o:o h:h o:o			{ [j, o, h, o] }
+	/ j:j o:o h:h o':o			{ [j, o, h, o'] }
 	/ r:r u:u h:h o:o			{ [r, u, h, o] }
 	/ g:g e:e h:h o:o			{ [g, e, h, o] }
 	/ j:j e:e h:h o:o			{ [j, e, h, o] }
 	/ l:l o:o h:h a:a			{ [l, o, h, a] }
-	/ n:n a:a h:h a:a			{ [n, a, h, a] }
-	/ s:s e:e h:h e:e			{ [s, e, h, e] }
+	/ n:n a:a h:h a':a			{ [n, a, h, a'] }
+	/ s:s e:e h:h e':e			{ [s, e, h, e'] }
 	/ t:t o:o h:h a:a			{ [t, o, h, a] }
 	/ g:g a:a h:h e:e			{ [g, a, h, e] }
-	/ y:y h:h y:y				{ [y, h, y] }
+	/ y:y h:h y':y				{ [y, h, y'] }
 	/ b:b y:y				{ [b, y] }
 	/ c:c y:y				{ [c, y] }
 	/ d:d y:y				{ [d, y] }
@@ -1242,7 +1242,7 @@ GI :: String = _:Y* &_:cmavo r:(g:g i:i { [g, i] }) &_:post_cmavo
 
 GIhA :: String = _:Y* &_:cmavo r:
 	( g:g i:i h:h e:e			{ [g, i, h, e] }
-	/ g:g i:i h:h i:i			{ [g, i, h, i] }
+	/ g:g i:i h:h i':i			{ [g, i, h, i'] }
 	/ g:g i:i h:h o:o			{ [g, i, h, o] }
 	/ g:g i:i h:h a:a			{ [g, i, h, a] }
 	/ g:g i:i h:h u:u			{ [g, i, h, u] }
@@ -1308,7 +1308,7 @@ JOI :: String = _:Y* &_:cmavo r:
 	/ f:f e:e h:h i:i			{ [f, e, h, i] }
 	/ v:v u:u h:h u':u			{ [v, u, h, u'] }
 	/ s:s u:u h:h i:i			{ [s, u, h, i] }
-	/ j:j u:u h:h u:u			{ [j, u, h, u] }
+	/ j:j u:u h:h u':u			{ [j, u, h, u'] }
 	/ g:g e:e i:i				{ [g, e, i] }
 	/ p:p a:a h:h i:i			{ [p, a, h, i] }
 	/ f:f a:a h:h i:i			{ [f, a, h, i] }
@@ -1323,7 +1323,7 @@ JOI :: String = _:Y* &_:cmavo r:
 	/ r:r i:i h:h o:o			{ [r, i, h, o] }
 	/ s:s a:a h:h i:i			{ [s, a, h, i] }
 	/ p:p i:i h:h a:a			{ [p, i, h, a] }
-	/ s:s i:i h:h i:i			{ [s, i, h, i] }
+	/ s:s i:i h:h i':i			{ [s, i, h, i'] }
  ) &_:post_cmavo					{ r }
 
 KE :: String = _:Y* &_:cmavo r:(k:k e:e { [k, e] }) &_:post_cmavo
@@ -1341,11 +1341,11 @@ KOhA :: String = _:Y* &_:cmavo r:
 	/ d:d i:i h:h u:u			{ [d, i, h, u] }
 	/ d:d i:i h:h e:e			{ [d, i, h, e] }
 	/ d:d e:e h:h u:u			{ [d, e, h, u] }
-	/ d:d e:e h:h e:e			{ [d, e, h, e] }
+	/ d:d e:e h:h e':e			{ [d, e, h, e'] }
 	/ d:d e:e i:i				{ [d, e, i] }
 	/ d:d o:o h:h i:i			{ [d, o, h, i] }
 	/ m:m i:i h:h o:o			{ [m, i, h, o] }
-	/ m:m a:a h:h a:a			{ [m, a, h, a] }
+	/ m:m a:a h:h a':a			{ [m, a, h, a'] }
 	/ m:m i:i h:h a:a			{ [m, i, h, a] }
 	/ d:d o:o h:h o':o			{ [d, o, h, o'] }
 	/ k:k o:o h:h a:a			{ [k, o, h, a] }
@@ -1361,7 +1361,7 @@ KOhA :: String = _:Y* &_:cmavo r:
 	/ v:v o:o h:h a:a			{ [v, o, h, a] }
 	/ v:v o:o h:h e:e			{ [v, o, h, e] }
 	/ v:v o:o h:h i:i			{ [v, o, h, i] }
-	/ v:v o:o h:h o:o			{ [v, o, h, o] }
+	/ v:v o:o h:h o':o			{ [v, o, h, o'] }
 	/ v:v o:o h:h u:u			{ [v, o, h, u] }
 	/ r:r u:u				{ [r, u] }
 	/ r:r i:i				{ [r, i] }
@@ -1420,7 +1420,7 @@ LI :: String = _:Y* &_:cmavo r:(l:l i:i { [l, i] }) &_:post_cmavo
 LIhU :: String = _:Y* &_:cmavo r:(l:l i:i h:h u:u { [l, i, h, u] }) &_:post_cmavo
 							{ r }
 
-LOhO :: String = _:Y* &_:cmavo r:(l:l o:o h:h o:o { [l, o, h, o] }) &_:post_cmavo
+LOhO :: String = _:Y* &_:cmavo r:(l:l o:o h:h o':o { [l, o, h, o'] }) &_:post_cmavo
 							{ r }
 
 LOhU :: String = _:Y* &_:cmavo r:(l:l o:o h:h u:u { [l, o, h, u] }) &_:post_cmavo
@@ -1429,11 +1429,11 @@ LOhU :: String = _:Y* &_:cmavo r:(l:l o:o h:h u:u { [l, o, h, u] }) &_:post_cmav
 LU :: String = _:Y* &_:cmavo r:(l:l u:u { [l, u] }) &_:post_cmavo
 							{ r }
 
-LUhU :: String = _:Y* &_:cmavo r:(l:l u:u h:h u:u { [l, u, h, u] }) &_:post_cmavo
+LUhU :: String = _:Y* &_:cmavo r:(l:l u:u h:h u':u { [l, u, h, u'] }) &_:post_cmavo
 							{ r }
 
 MAI :: String = _:Y* &_:cmavo r:
-	( m:m o:o h:h o:o			{ [m, o, h, o] }
+	( m:m o:o h:h o':o			{ [m, o, h, o'] }
 	/ m:m a:a i:i				{ [m, a, i] }
  ) &_:post_cmavo					{ r }
 
@@ -1455,12 +1455,12 @@ MOI :: String = _:Y* &_:cmavo r:
  ) &_:post_cmavo					{ r }
 
 NA :: String = _:Y* &_:cmavo r:
-	( j:j a:a h:h a:a			{ [j, a, h, a] }
+	( j:j a:a h:h a':a			{ [j, a, h, a'] }
 	/ n:n a:a				{ [n, a] }
  ) &_:post_cmavo					{ r }
 
 NAhE :: String = _:Y* &_:cmavo r:
-	( f:f e:e h:h e:e			{ [f, e, h, e] }
+	( f:f e:e h:h e':e			{ [f, e, h, e'] }
 	/ m:m o:o h:h i:i			{ [m, o, h, i] }
 	/ t:t o:o h:h e:e			{ [t, o, h, e] }
 	/ j:j e:e h:h a:a			{ [j, e, h, a] }
@@ -1484,16 +1484,16 @@ NOI :: String = _:Y* &_:cmavo r:
 
 NU :: String = _:Y* &_:cmavo r:
 	( n:n i:i				{ [n, i] }
-	/ d:d u:u h:h u:u			{ [d, u, h, u] }
+	/ d:d u:u h:h u':u			{ [d, u, h, u'] }
 	/ s:s i:i h:h o:o			{ [s, i, h, o] }
 	/ n:n u:u				{ [n, u] }
-	/ l:l i:i h:h i:i			{ [l, i, h, i] }
+	/ l:l i:i h:h i':i			{ [l, i, h, i'] }
 	/ k:k a:a				{ [k, a] }
 	/ j:j e:e i:i				{ [j, e, i] }
-	/ s:s u:u h:h u:u			{ [s, u, h, u] }
+	/ s:s u:u h:h u':u			{ [s, u, h, u'] }
 	/ z:z u:u h:h o:o			{ [z, u, h, o] }
 	/ m:m u:u h:h e:e			{ [m, u, h, e] }
-	/ p:p u:u h:h u:u			{ [p, u, h, u] }
+	/ p:p u:u h:h u':u			{ [p, u, h, u'] }
 	/ z:z a:a h:h i:i			{ [z, a, h, i] }
  ) &_:post_cmavo					{ r }
 
@@ -1514,7 +1514,7 @@ PA :: String = _:Y* &_:cmavo r:
 	/ c:c e:e h:h i:i			{ [c, e, h, i] }
 	/ m:m a:a h:h u:u			{ [m, a, h, u] }
 	/ r:r a:a h:h e:e			{ [r, a, h, e] }
-	/ d:d a:a h:h a:a			{ [d, a, h, a] }
+	/ d:d a:a h:h a':a			{ [d, a, h, a'] }
 	/ s:s o:o h:h a:a			{ [s, o, h, a] }
 	/ j:j i:i h:h i':i			{ [j, i, h, i'] }
 	/ s:s u:u h:h o:o			{ [s, u, h, o] }
@@ -1530,7 +1530,7 @@ PA :: String = _:Y* &_:cmavo r:
 	/ t:t e:e h:h o:o			{ [t, e, h, o] }
 	/ x:x o:o				{ [x, o] }
 	/ p:p a:a i:i				{ [p, a, i] }
-	/ n:n o:o h:h o:o			{ [n, o, h, o] }
+	/ n:n o:o h:h o':o			{ [n, o, h, o'] }
 	/ n:n o:o				{ [n, o] }
 	/ p:p a:a				{ [p, a] }
 	/ r:r e:e				{ [r, e] }
@@ -1634,14 +1634,14 @@ UI :: String = _:Y* &_:cmavo result:
 	/ u:u e:e				{ [u, e] }
 	/ i:i h:h i':i				{ [i, h, i'] }
 	/ u:u h:h e:e				{ [u, h, e] }
-	/ b:b a:a h:h a:a			{ [b, a, h, a] }
+	/ b:b a:a h:h a':a			{ [b, a, h, a'] }
 	/ j:j a:a h:h o:o			{ [j, a, h, o] }
 	/ c:c a:a h:h e:e			{ [c, a, h, e] }
 	/ s:s u:u h:h a:a			{ [s, u, h, a] }
 	/ t:t i:i h:h e:e			{ [t, i, h, e] }
 	/ k:k a:a h:h u:u			{ [k, a, h, u] }
 	/ s:s e:e h:h o:o			{ [s, e, h, o] }
-	/ z:z a:a h:h a:a			{ [z, a, h, a] }
+	/ z:z a:a h:h a':a			{ [z, a, h, a'] }
 	/ p:p e:e h:h i:i			{ [p, e, h, i] }
 	/ r:r u:u h:h a:a			{ [r, u, h, a] }
 	/ j:j u:u h:h a:a			{ [j, u, h, a] }
@@ -1654,7 +1654,7 @@ UI :: String = _:Y* &_:cmavo result:
 	/ t:t o:o h:h u:u			{ [t, o, h, u] }
 	/ v:v a:a h:h i:i			{ [v, a, h, i] }
 	/ p:p a:a h:h e:e			{ [p, a, h, e] }
-	/ z:z u:u h:h u:u			{ [z, u, h, u] }
+	/ z:z u:u h:h u':u			{ [z, u, h, u'] }
 	/ s:s a:a h:h e:e			{ [s, a, h, e] }
 	/ l:l a:a h:h a':a			{ [l, a, h, a'] }
 	/ k:k e:e h:h u:u			{ [k, e, h, u] }
@@ -1680,13 +1680,13 @@ UI :: String = _:Y* &_:cmavo result:
 	/ r:r o:o h:h o':o			{ [r, o, h, o'] }
 	/ r:r o:o h:h u:u			{ [r, o, h, u] }
 	/ r:r o:o h:h a:a			{ [r, o, h, a] }
-	/ r:r e:e h:h e:e			{ [r, e, h, e] }
+	/ r:r e:e h:h e':e			{ [r, e, h, e'] }
 	/ l:l e:e h:h o:o			{ [l, e, h, o] }
 	/ j:j u:u h:h o:o			{ [j, u, h, o] }
 	/ f:f u:u h:h i:i			{ [f, u, h, i] }
 	/ d:d a:a i:i				{ [d, a, i] }
 	/ g:g a:a h:h i:i			{ [g, a, h, i] }
-	/ z:z o:o h:h o:o			{ [z, o, h, o] }
+	/ z:z o:o h:h o':o			{ [z, o, h, o'] }
 	/ b:b e:e h:h u:u			{ [b, e, h, u] }
 	/ r:r i:i h:h e:e			{ [r, i, h, e] }
 	/ s:s e:e h:h i:i			{ [s, e, h, i] }
@@ -1751,7 +1751,7 @@ zifcme :: String = !_:h cs:
 
 cmavo :: String
 	= !_:cmevla !_:CVCy_lujvo c:C? i:I? n:nucleus
-		hns:(h:h n:nucleus { h : n })* &_:post_cmavo
+		hns:(h:h n':nucleus { h : n' })* &_:post_cmavo
 							{ catMaybes [c, i] ++
 								n ++ concat hns }
 
