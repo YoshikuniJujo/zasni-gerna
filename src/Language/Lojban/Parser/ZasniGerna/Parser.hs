@@ -172,6 +172,7 @@ data Connective
 	| NASECon Tag Prefix Connective
 	| TAGGI Tag Connective
 	| NC
+	| GIJA Connective Connective
 	deriving Show
 
 data Initiator
@@ -552,6 +553,8 @@ joik :: Connective
 
 gihek :: Connective
 	= n:NA_? s:SE_? g:GIhA_				{ mkConnective n s g }
+	/ n:NA_? s:SE_? gi:GI_ j:JOI_
+		{ mkConnective n s (GIJA gi j) }
 
 gek :: Connective
 	= s:SE_? g:GA_		{ maybe g (flip SECon g) s }
