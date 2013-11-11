@@ -10,7 +10,7 @@ parse src
 	| Right (r, _) <- parsed = Right r
 	| Left l <- parsed = Left $ showParseError l
 	where
-	parsed = runError $ gerna_text $ gerna_parse src
+	parsed = runError $ gerna_textAll $ gerna_parse src
 
 showParseError :: ParseError (Pos String) Gerna_Derivs -> String
 showParseError pe =
@@ -355,12 +355,14 @@ mkVocative cs _ dohu = COIs cs $ fromMaybe NT dohu
 
 prefix: "gerna_"
 
+textAll :: (Free, Text, Terminator) = r:text !_		{ r }
+
 -- ****** A. GRAMMAR ******
 
 -- 1. Text Paragraphs Statement
 
 text :: (Free, Text, Terminator)
-	= _:words_SU* _:SI_tail* ps:post p:paragraphs f:FAhO_?
+	= _:words_SU* _:SI_tail* ps:post p:paragraphs f:(f':FAhO_ _:(_)* { f' })?
 	{ (fromMaybe NF ps, p, fromMaybe NT f) }
 
 paragraphs :: Text = p:paragraph ps:(n:NIhO_ p':paragraph { (n, p') })*
