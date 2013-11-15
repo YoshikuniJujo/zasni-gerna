@@ -142,6 +142,7 @@ data Mex
 	| BLerfu [String] Word
 	| BLerfuF [String] Word Free
 	| NIhE Initiator Text Terminator
+	| MOhE Initiator Text Terminator
 	| VEI Initiator Mex Terminator
 	| MLAhE Initiator Mex Terminator
 	| MNAhEBO Prefix BO Mex Terminator
@@ -477,6 +478,7 @@ mex_1 :: Mex
 	= p:PA_+ b:BOI_?				{ mkMex1 p b }
 	/ l:lerfu+ b:BOI_?				{ mkMex1 l b }
 	/ n:NIhE_ s:selbri t:TEhU_?		{ NIhE n s $ fromMaybe NT t }
+	/ m:MOhE_ s:sumti t:TEhU_?		{ MOhE m s $ fromMaybe NT t }
 	/ vei:VEI_ m:mex veho:VEhO_?		{ VEI vei m $ fromMaybe NT veho }
 	/ lnb:(l:LAhE_ { Left l } / n:NAhE_ b:BO_ { Right (n, b) })
 		m:mex luhu:LUhU_?
@@ -778,6 +780,10 @@ MEhU_ :: Terminator = pr:pre m:MEhU ps:post		{ baheFree Term TermF
 
 MOI_ :: Suffix = pr:pre m:MOI ps:post			{ baheFree Suffix SuffixF
 								BSuffix BSuffixF
+								pr m ps }
+
+MOhE_ :: Initiator = pr:pre m:MOhE ps:post		{ baheFree Init InitF
+								BInit BInitF
 								pr m ps }
 
 NA_ :: Tag = pr:pre n:NA ps:post			{ baheFree NA NAF
@@ -1458,6 +1464,9 @@ MOI :: String = _:Y* &_:cmavo r:
 	/ c:c u:u h:h o:o			{ [c, u, h, o] }
 	/ v:v a:a h:h e:e			{ [v, a, h, e] }
  ) &_:post_cmavo					{ r }
+
+MOhE :: String = _:Y* &_:cmavo r:(m:m o:o h:h e:e { [m, o, h, e] }) &_:post_cmavo
+							{ r }
 
 NA :: String = _:Y* &_:cmavo r:
 	( j:j a:a h:h a':a			{ [j, a, h, a'] }
