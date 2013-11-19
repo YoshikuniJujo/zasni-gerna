@@ -356,7 +356,7 @@ mkVocative cs _ dohu = COIs cs $ fromMaybe NT dohu
 
 prefix: "gerna_"
 
-textAll :: (Free, Text, Terminator) = r:text !_		{ r }
+textAll :: (Free, Text, Terminator) = r:text _:space* !_	{ r }
 
 -- ****** A. GRAMMAR ******
 
