@@ -1684,7 +1684,7 @@ UI :: String = _:Y* &_:cmavo result:
 	/ l:l i:i h:h o:o			{ [l, i, h, o] }
 	/ p:p a:a u:u				{ [p, a, u] }
 	/ m:m i:i h:h u:u			{ [m, i, h, u] }
-	/ k:k u:u n:n i:i			{ [k, u, n, i] }
+	/ k:k u:u h:h i:i			{ [k, u, h, i] }
 	/ j:j i:i h:h a:a			{ [j, i, h, a] }
 	/ s:s i:i h:h a:a			{ [s, i, h, a] }
 	/ p:p o:o h:h o':o			{ [p, o, h, o'] }
