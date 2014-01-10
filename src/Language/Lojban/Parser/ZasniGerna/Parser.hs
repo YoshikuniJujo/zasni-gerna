@@ -416,7 +416,7 @@ term :: Text
 	= f:FA_? s:sumti				{ maybe s (flip Tag s) f }
 	/ t:tag? s:sumti				{ maybe s (flip Tag s) t }
 	/ f:FA_ k:KU_?					{ TagKU f $ fromMaybe NT k }
-	/ t:tag k:KU_?					{ TagKU t $ fromMaybe NT k }
+	/ t:tag !_:selbri k:KU_?					{ TagKU t $ fromMaybe NT k }
 	/ n:NA_ k:KU_?					{ TagKU n $ fromMaybe NT k }
 	/ ge:gek t1:term+ v1:VAU_? gi:GI_ t2:term+ v2:VAU_?
 		{ Gek ge (Terms t1 $ fromMaybe NT v1)

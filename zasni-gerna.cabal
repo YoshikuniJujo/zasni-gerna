@@ -2,7 +2,7 @@ build-type:	Simple
 cabal-version:	>= 1.8
 
 name:		zasni-gerna
-version:	0.0.6
+version:	0.0.7
 stability:	Experimental
 author:		Yoshikuni Jujo <PAF01143@nifty.ne.jp>
 maintainer:	Yoshikuni Jujo <PAF01143@nifty.ne.jp>
@@ -23,7 +23,7 @@ source-repository	head
 source-repository	this
   type:		git
   location:	git://github.com/YoshikuniJujo/zasni-gerna.git
-  tag:		0.0.5
+  tag:		0.0.7
 
 library
   hs-source-dirs:	src
