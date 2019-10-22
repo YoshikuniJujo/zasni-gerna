@@ -2,6 +2,7 @@
 
 module Language.Lojban.Parser.ZasniGerna.Parser where
 
+import Prelude hiding (Word)
 import Text.Papillon
 import Data.Maybe
 
