@@ -20,4 +20,5 @@ module Language.Lojban.Parser.ZasniGerna (
 	BU(..)
  ) where
 
+import Prelude hiding (Word)
 import Language.Lojban.Parser.ZasniGerna.Parser
