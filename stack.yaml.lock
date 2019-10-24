@@ -5,15 +5,15 @@
 
 packages:
 - completed:
-    hackage: papillon-0.1.1.0@sha256:86dde0dc74f5a6278eab2415fa7e4f942d9a19d0ad29da61e9b9fb5e96dba2b4,1315
+    hackage: papillon-0.1.1.1@sha256:3f474af81dc1030adaffa6018eb6904641d608ef684c49fa68e1b04cbbbfadb4,1315
     pantry-tree:
       size: 769
-      sha256: c3382063619302737e4c08ed8aeb40ee18a6e7e3f43fbad96c2195dc145e3f5f
+      sha256: 4a19653c5c2b6511a8bde53033236eb11a6387f7cca14eb82e9b9572e5a6db2d
   original:
-    hackage: papillon-0.1.1.0
+    hackage: papillon-0.1.1.1
 snapshots:
 - completed:
-    size: 524786
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/11.yaml
-    sha256: 088bb91b545839510a41ae92fa5feb36779ef3529571a42bd12b9f51eb89ded3
-  original: lts-14.11
+    size: 407538
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2019/10/24.yaml
+    sha256: da8c581e11d020753319f401e563008cc66eee1fdf1865e34bf1ced253e83d1b
+  original: nightly-2019-10-24
