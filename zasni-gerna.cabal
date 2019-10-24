@@ -13,8 +13,7 @@ license-file:	LICENSE
 
 category:	Language
 synopsis:	lojban parser (zasni gerna)
-description:
-	lojban zasni gerna parser
+description: lojban zasni gerna parser
 
 source-repository	head
   type:		git
